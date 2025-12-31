@@ -1,10 +1,12 @@
-function App() {
+import React from 'react';
+import AppRouter from './app/routes/AppRouter';
 
+function App() {
   return (
-    <main>
-      <h1 className="font-bold">Project Structure Initialte</h1>
-    </main>
-  )
+    // In the future, global state wrappers (providers) like AuthProvider and ThemeProvider will be added here.
+    // For now, only rendering the router structure.
+    <AppRouter />
+  );
 }
 
-export default App
+export default App;
