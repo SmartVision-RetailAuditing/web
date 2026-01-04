@@ -41,7 +41,7 @@ const TopBar = () => {
         {/* Profil Alanı */}
         <div className="flex items-center gap-3 cursor-pointer">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-gray-900">Sarah Johnson</p>
+            <p className="text-sm font-semibold text-gray-900">Selcuk Sayin</p>
             <p className="text-xs text-gray-500">Supervisor</p>
           </div>
           <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold border border-blue-200">
