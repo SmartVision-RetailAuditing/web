@@ -14,7 +14,7 @@
 // Adjust the height and width as necessary to fit your design requirements.
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom'; // useNavigate eklendi
 import { 
   LayoutDashboard, 
   Store, 
@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
+  const navigate = useNavigate(); // Yönlendirme için hook'u tanımladık
+
   // Menü elements defined as array, easier to map through
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,6 +35,17 @@ const Sidebar = () => {
     { path: '/tasks', label: 'Tasks', icon: CheckSquare },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
   ];
+
+  // Logout Fonksiyonu
+  const handleLogout = () => {
+    // 1. Tarayıcıdaki token ve rol bilgilerini sil
+    localStorage.removeItem('smartvision_token');
+    localStorage.removeItem('smartvision_role');
+    
+    // 2. Login sayfasına yönlendir
+    navigate('/login');
+  };
+
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0 z-30">
@@ -69,7 +82,10 @@ const Sidebar = () => {
 
       {/* 3. Bottom Section (Logout etc.) */}
       <div className="p-4 border-t border-gray-100">
-        <button className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium">
+        <button 
+          onClick={handleLogout} // Fonksiyonu butona bağladık
+          className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
+        >
           <LogOut size={20} />
           Logout
         </button>
