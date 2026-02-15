@@ -1,26 +1,31 @@
-// src/app/routes/AppRouter.tsx
-// Main application router configuration
-// Using React Router v6 for route management
-// Wraps the application layout around the routed pages
-// Redirects root path to /dashboard by default
-// Imports necessary components and pages
-// for routing and layout structure
-
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from '../layout/AppLayout';
 import DashboardPage from '../../pages/dashboard/DashboardPage';
+import LoginPage from '../../pages/auth/LoginPage';
+import { RequireAuth, RequireGuest } from '../guards/RequireRole'; // Guard'ları ekledik
 
 const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          {/* Other pages will go here  */}
-          <Route path="/stores" element={<div>Stores Page</div>} />
+        
+        {/* SADECE GİRİŞ YAPMAMIŞ KULLANICILAR (Misafirler) İÇİN */}
+        <Route element={<RequireGuest />}>
+          <Route path="/login" element={<LoginPage />} />
         </Route>
+
+        {/* SADECE GİRİŞ YAPMIŞ KULLANICILAR İÇİN (Korumalı Alan) */}
+        <Route element={<RequireAuth />}>
+          <Route element={<AppLayout />}>
+            {/* Kök dizine (/) geleni direkt dashboard'a at */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            
+            {/* İleride yapacağımız diğer sayfalar da bu bloğun içine eklenecek */}
+            {/* <Route path="/stores" element={<StoresPage />} /> */}
+          </Route>
+        </Route>
+
       </Routes>
     </BrowserRouter>
   );
