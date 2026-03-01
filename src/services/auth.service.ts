@@ -9,7 +9,9 @@ export interface LoginResponseDto {
 }
 
 // Backend'in çalıştığı URL (Geliştirme aşamasında localhost portuna göre değiştir)
+//const API_URL = 'https://smartvisionbackend-d4bfdra8f4b6gmad.swedencentral-01.azurewebsites.net/api/Auth'; //
 const API_URL = 'http://localhost:5000/api/Auth'; 
+
 
 export const authService = {
   login: async (credentials: LoginRequestDto): Promise<LoginResponseDto> => {
