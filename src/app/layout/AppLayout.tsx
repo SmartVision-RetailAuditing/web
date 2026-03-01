@@ -7,6 +7,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import { Toaster } from 'react-hot-toast'; // 1. Kütüphaneyi import ettik
 
 const AppLayout = () => {
   return (
@@ -29,6 +30,33 @@ const AppLayout = () => {
           </div>
         </main>
       </div>
+
+      {/* 2. Toaster Bileşenini Ekledik (Layout'u bozmaz, fixed çalışır) */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000, // 3 saniye sonra kaybolur
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+            fontSize: '14px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          },
+          success: {
+            iconTheme: {
+              primary: '#22c55e', // Tailwind green-500
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444', // Tailwind red-500
+              secondary: '#fff',
+            },
+          },
+        }} 
+      />
     </div>
   );
 };
