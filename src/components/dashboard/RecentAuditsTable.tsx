@@ -1,149 +1,181 @@
-import React from 'react';
-import { Eye, MoreHorizontal } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { dashboardService, RecentAuditDto } from '../../services/dashboard.service';
 
-// 1. Tip Tanımları
-interface Audit {
-  id: string;
-  store: string;
-  location: string;
-  compliance: number;
-  status: 'Compliant' | 'Warning' | 'Non-Compliant';
-  auditor: string;
-  time: string;
-}
-
-// 2. Mock Data (İzmir ve Yerel Marketler ile Güncellendi)
-const RECENT_AUDITS: Audit[] = [
-  {
-    id: 'AUD-2025-4821',
-    store: 'Migros MM - Konak',
-    location: 'Konak, İzmir',
-    compliance: 92,
-    status: 'Compliant',
-    auditor: 'Ahmet Yılmaz',
-    time: '15 minutes ago',
-  },
-  {
-    id: 'AUD-2025-4820',
-    store: 'BİM - Karşıyaka Çarşı',
-    location: 'Karşıyaka, İzmir',
-    compliance: 68,
-    status: 'Warning',
-    auditor: 'Ayşe Demir',
-    time: '32 minutes ago',
-  },
-  {
-    id: 'AUD-2025-4819',
-    store: 'A101 - Bornova Merkez',
-    location: 'Bornova, İzmir',
-    compliance: 45,
-    status: 'Non-Compliant',
-    auditor: 'Mehmet Kaya',
-    time: '1 hour ago',
-  },
-  {
-    id: 'AUD-2025-4818',
-    store: 'Şok - Alsancak',
-    location: 'Konak, İzmir',
-    compliance: 95,
-    status: 'Compliant',
-    auditor: 'Zeynep Çelik',
-    time: '2 hours ago',
-  },
-];
-
-// 3. Yardımcı Bileşen: Durum Badge'i
-const StatusBadge = ({ status }: { status: Audit['status'] }) => {
-  const styles = {
-    Compliant: 'bg-green-50 text-green-700 border-green-100',
-    Warning: 'bg-yellow-50 text-yellow-700 border-yellow-100',
-    'Non-Compliant': 'bg-red-50 text-red-700 border-red-100',
-  };
-
-  // Status metinlerini Türkçeleştirmek istersen burayı da değiştirebiliriz
-  // Şimdilik kod yapısını bozmamak için İngilizce key kullanıp ekranda Türkçe gösterebiliriz veya olduğu gibi bırakabiliriz.
-  // Aşağıda olduğu gibi bırakıyorum, eğer Türkçe yazsın istersen {status} yerine map kullanabiliriz.
-  
-  return (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status]}`}>
-      {status}
-    </span>
-  );
+const STATUS_STYLES: Record<string, string> = {
+  COMPLIANT:     'text-green-700 bg-green-50 border border-green-200',
+  WARNING:       'text-yellow-700 bg-yellow-50 border border-yellow-200',
+  NON_COMPLIANT: 'text-red-700 bg-red-50 border border-red-200',
 };
 
-// 4. Ana Tablo Bileşeni
+const STATUS_LABELS: Record<string, string> = {
+  COMPLIANT:     'Compliant',
+  WARNING:       'Warning',
+  NON_COMPLIANT: 'Non-Compliant',
+};
+
+const TASK_TYPE_LABELS: Record<string, string> = {
+  SHELF_AUDIT:          'Shelf Audit',
+  PRICE_CHECK:          'Price Check',
+  PANORAMA:             'Panorama',
+  PLANOGRAM_COMPLIANCE: 'Planogram',
+};
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return { bar: 'bg-green-500', text: 'text-green-700' };
+  if (score >= 60) return { bar: 'bg-yellow-400', text: 'text-yellow-700' };
+  return { bar: 'bg-red-500', text: 'text-red-700' };
+};
+
+const formatTimeAgo = (dateStr: string): string => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
 const RecentAuditsTable = () => {
+  const navigate = useNavigate();
+  const [audits, setAudits] = useState<RecentAuditDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    dashboardService.getRecentAudits()
+      .then(setAudits)
+      .catch(err => setError(err.message))
+      .finally(() => setIsLoading(false));
+  }, []);
+
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
-      {/* Tablo Başlığı */}
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 className="font-semibold text-gray-900">Recent Audits</h3>
-        <button className="text-gray-400 hover:text-gray-600">
-          <MoreHorizontal size={20} />
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Başlık */}
+      <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Recent Audits</h2>
+          <p className="text-sm text-gray-500">Latest field activity</p>
+        </div>
+        <button
+          onClick={() => navigate('/audits')}
+          className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          View All →
         </button>
       </div>
 
-      {/* Tablo Alanı */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-3">AUDIT ID</th>
-              <th className="px-6 py-3">STORE</th>
-              <th className="px-6 py-3">LOCATION</th>
-              <th className="px-6 py-3">COMPLIANCE</th>
-              <th className="px-6 py-3">STATUS</th>
-              <th className="px-6 py-3">AUDITOR</th>
-              <th className="px-6 py-3">TIME</th>
-              <th className="px-6 py-3 text-right">ACTION</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {RECENT_AUDITS.map((audit) => (
-              <tr key={audit.id} className="hover:bg-gray-50 transition-colors group">
-                <td className="px-6 py-4 font-medium text-gray-900">{audit.id}</td>
-                <td className="px-6 py-4 text-gray-600">{audit.store}</td>
-                <td className="px-6 py-4 text-gray-500">{audit.location}</td>
-                
-                {/* Compliance Progress Bar */}
-                <td className="px-6 py-4">
-                  <div className="flex flex-col gap-1 w-24">
-                    <span className={`text-xs font-semibold ${
-                        audit.compliance >= 80 ? 'text-green-600' :
-                        audit.compliance >= 60 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                        {audit.compliance}%
-                    </span>
-                    <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${
-                            audit.compliance >= 80 ? 'bg-green-500' :
-                            audit.compliance >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                        style={{ width: `${audit.compliance}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </td>
+      {/* Loading */}
+      {isLoading && (
+        <div className="divide-y divide-gray-50">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="px-6 py-4 animate-pulse flex gap-4 items-center">
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                <div className="h-3 bg-gray-100 rounded w-1/4"></div>
+              </div>
+              <div className="h-3 bg-gray-200 rounded w-24"></div>
+              <div className="h-6 bg-gray-200 rounded w-20"></div>
+              <div className="h-8 bg-gray-100 rounded w-24"></div>
+            </div>
+          ))}
+        </div>
+      )}
 
-                <td className="px-6 py-4">
-                  <StatusBadge status={audit.status} />
-                </td>
-                <td className="px-6 py-4 text-gray-600">{audit.auditor}</td>
-                <td className="px-6 py-4 text-gray-400 text-xs">{audit.time}</td>
-                
-                {/* Action Button */}
-                <td className="px-6 py-4 text-right">
-                  <button className="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Eye size={16} />
-                    View
-                  </button>
-                </td>
+      {/* Error */}
+      {error && (
+        <div className="px-6 py-4 text-sm text-red-600 bg-red-50 border-t border-red-100">
+          Tablo yüklenemedi: {error}
+        </div>
+      )}
+
+      {/* Tablo */}
+      {!isLoading && !error && (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="text-left text-xs font-semibold text-gray-400 uppercase tracking-wide bg-gray-50">
+                <th className="px-6 py-3">Store</th>
+                <th className="px-6 py-3">Auditor / Task</th>
+                <th className="px-6 py-3">Score</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Time</th>
+                <th className="px-6 py-3"></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {audits.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400">
+                    Henüz tamamlanmış audit yok.
+                  </td>
+                </tr>
+              ) : (
+                audits.map(audit => {
+                  const scoreColor = getScoreColor(audit.complianceScore);
+                  return (
+                    <tr key={audit.id} className="hover:bg-gray-50 transition-colors">
+
+                      {/* Store */}
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-gray-900 text-sm">{audit.storeName}</p>
+                        <p className="text-xs text-gray-400">{audit.location}</p>
+                      </td>
+
+                      {/* Auditor / Task */}
+                      <td className="px-6 py-4">
+                        <p className="text-sm text-gray-700">{audit.auditorName}</p>
+                        <span className="text-xs font-medium text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">
+                          {TASK_TYPE_LABELS[audit.taskType] ?? audit.taskType}
+                        </span>
+                      </td>
+
+                      {/* Score + Progress Bar */}
+                      <td className="px-6 py-4 min-w-[140px]">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                            <div
+                              className={`h-1.5 rounded-full ${scoreColor.bar}`}
+                              style={{ width: `${audit.complianceScore}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs font-bold ${scoreColor.text} w-10 text-right`}>
+                            {audit.complianceScore}%
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="px-6 py-4">
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_STYLES[audit.status] ?? ''}`}>
+                          {STATUS_LABELS[audit.status] ?? audit.status}
+                        </span>
+                      </td>
+
+                      {/* Time */}
+                      <td className="px-6 py-4 text-xs text-gray-400 whitespace-nowrap">
+                        {formatTimeAgo(audit.captureDate)}
+                      </td>
+
+                      {/* View Details */}
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => navigate(`/audits/${audit.id}`)}
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors whitespace-nowrap"
+                        >
+                          View Details
+                        </button>
+                      </td>
+
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
