@@ -1,1 +1,16 @@
 @import "tailwindcss";
+
+/* index.css içine eklenebilir */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+.leaflet-popup-content {
+  margin: 14px 16px;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  top: 8px;
+  right: 8px;
+  color: #9ca3af;
+}
