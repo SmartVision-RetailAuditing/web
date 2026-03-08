@@ -5,6 +5,8 @@ import LoginPage from '../../pages/auth/LoginPage';
 import StoresPage from '../../pages/stores/StoresPage';
 import StoreDetailPage from '../../pages/stores/StoreDetailPage'; // YENİ IMPORT
 import { RequireAuth, RequireGuest } from '../guards/RequireRole'; // Guard'ları ekledik
+import AuditDetailPage from '../../pages/audits/AuditDetailPage';
+import AuditsPage from '../../pages/audits/AuditsPage';
 
 const AppRouter = () => {
   return (
@@ -27,6 +29,9 @@ const AppRouter = () => {
             <Route path="/stores" element={<StoresPage />} />
             {/* YENİ ROUTE: :id parametresine dikkat */}
             <Route path="/stores/:id" element={<StoreDetailPage />} />
+
+            <Route path='/audits' element={<AuditsPage />} />
+            <Route path='/audits/:id' element={<AuditDetailPage />} />
             
             {/* İleride yapacağımız diğer sayfalar da bu bloğun içine eklenecek */}
             {/* <Route path="/stores" element={<StoresPage />} /> */}

@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Activity, Edit2, Trash2 } from 'lucide-react';
+import {
+  ArrowLeft, MapPin, Building2, Activity,
+  Edit2, Trash2, ClipboardList
+} from 'lucide-react';
 import { storeService, StoreDto } from '../../services/stores.service';
+import { useAuth } from '../../hooks/useAuth';
 import EditStoreModal from '../../components/stores/EditStoreModal';
-import DeleteConfirmModal from '../../components/stores/DeleteConfirmModal'; // 2. Modal Import
+import DeleteConfirmModal from '../../components/stores/DeleteConfirmModal';
 import toast from 'react-hot-toast';
-
 
 const StoreDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+  const { isAdmin } = useAuth();
+
   const [store, setStore] = useState<StoreDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Edit Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  
-  // Silme Modalı Stateleri
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Rol Kontrolü (Sadece Admin Silebilir/Güncelleyebilir)
-  const userRole = localStorage.getItem('smartvision_role'); 
-  const isAdmin = userRole === 'ADMIN' || userRole === 'Admin';
 
   useEffect(() => {
     if (id) fetchStoreDetail(id);
@@ -33,34 +30,24 @@ const StoreDetailPage = () => {
   const fetchStoreDetail = async (storeId: string) => {
     try {
       setIsLoading(true);
+      setError('');
       const data = await storeService.getStoreById(storeId);
       setStore(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Mağaza detayı yüklenemedi.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  /// GÜNCELLENEN SİLME FONKSİYONU
   const confirmDelete = async () => {
     if (!store) return;
-    
     setIsDeleting(true);
     try {
       await storeService.deleteStore(store.id);
-      
-      // Önce modalı kapatıyoruz
       setIsDeleteModalOpen(false);
-      
-      // Bildirimi fırlatıyoruz (import edilmediğinde tam burada kod çöküyordu)
       toast.success(`${store.name} başarıyla silindi!`);
-      
-      // Listeye yönlendiriyoruz. 
-      // DİKKAT: replace: true kullandık. Bu sayede kullanıcı tarayıcıda 
-      // "Geri" tuşuna basarsa silinmiş olan detay sayfasına değil, bir önceki sayfaya gider.
       navigate('/stores', { replace: true });
-      
     } catch (err: any) {
       toast.error(err.message || 'Silme işlemi başarısız oldu.');
       setIsDeleteModalOpen(false);
@@ -69,38 +56,52 @@ const StoreDetailPage = () => {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center">Loading details...</div>;
-  if (error || !store) return <div className="p-8 text-center text-red-500">Error: {error}</div>;
+  const getComplianceColor = (score: number) => {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'Compliant':     return 'bg-green-50 text-green-700 border-green-200';
+      case 'Warning':       return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'Non-Compliant': return 'bg-red-50 text-red-700 border-red-200';
+      default:              return 'bg-gray-50 text-gray-600 border-gray-200';
+    }
+  };
+
+  if (isLoading) return (
+    <div className="p-12 text-center text-gray-400 text-sm">Loading store details...</div>
+  );
+
+  if (error || !store) return (
+    <div className="p-12 text-center text-red-500 text-sm">{error || 'Store not found.'}</div>
+  );
 
   return (
     <div className="space-y-6">
-      
-      {/* Güncelleme Modalı */}
 
-        {/* Silme Onay Modalı */}
-        {isAdmin && (
-        <DeleteConfirmModal 
-          isOpen={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={confirmDelete}
-          itemName={store?.name || 'this store'}
-          isLoading={isDeleting}
-        />
-      )}
+      {/* Modals — her zaman render edilir, isOpen ile kontrol edilir */}
+      <EditStoreModal
+        isOpen={isAdmin && isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        store={store}
+        onSuccess={() => fetchStoreDetail(id as string)}
+      />
 
-      {isAdmin && (
-        <EditStoreModal 
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          store={store}
-          onSuccess={() => fetchStoreDetail(id as string)} // Güncelleme bitince sayfadaki veriyi tazele
-        />
-      )}
+      <DeleteConfirmModal
+        isOpen={isAdmin && isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        itemName={store.name}
+        isLoading={isDeleting}
+      />
 
-      {/* Header, Back Button & Action Buttons */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate('/stores')}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
@@ -108,93 +109,106 @@ const StoreDetailPage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
-            <p className="text-gray-500 flex items-center gap-1 text-sm">
-              <span className="font-medium text-blue-600">{store.chainName}</span> 
-              • 
-              <span>Store ID: #{store.id}</span>
+            <p className="text-gray-500 flex items-center gap-1.5 text-sm mt-0.5">
+              <span className="font-medium text-blue-600">{store.chainName}</span>
+              <span className="text-gray-300">•</span>
+              <span className="text-gray-400">Store ID: #{store.id}</span>
             </p>
           </div>
         </div>
 
-        {/* ADMIN AKSİYON BUTONLARI */}
         {isAdmin && (
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setIsEditModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
             >
-              <Edit2 size={16} />
+              <Edit2 size={15} />
               Edit Store
             </button>
-            {/* Silme Butonu Artık Direkt window.confirm ÇAĞIRMIYOR, Modal Açıyor */}
-            <button 
+            <button
               onClick={() => setIsDeleteModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors shadow-sm"
             >
-              <Trash2 size={16} />
+              <Trash2 size={15} />
               Delete
             </button>
           </div>
         )}
       </div>
 
-      {/* Info Cards Grid */}
+      {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Address Card */}
+
+        {/* Location Card */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-              <MapPin size={24} />
+              <MapPin size={20} />
             </div>
             <h3 className="font-semibold text-gray-900">Location</h3>
           </div>
           <p className="text-gray-600 text-sm mb-2">{store.address}</p>
-          <p className="text-gray-500 text-xs">
-            Coordinates: {store.latitude}, {store.longitude}
+          <p className="text-gray-400 text-xs">
+            {store.latitude}, {store.longitude}
           </p>
           {store.region && (
-             <div className="mt-3 inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-               Region: {store.region}
-             </div>
+            <div className="mt-3 inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md">
+              {store.region}
+            </div>
           )}
         </div>
 
-        {/* Status Card */}
+        {/* Compliance Card */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-              <Activity size={24} />
+              <Activity size={20} />
             </div>
-            <h3 className="font-semibold text-gray-900">Compliance Status</h3>
+            <h3 className="font-semibold text-gray-900">Compliance</h3>
           </div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-600">Score</span>
-            <span className="text-2xl font-bold text-gray-900">{store.complianceScore}%</span>
+          <div className="flex items-end justify-between mb-3">
+            <span className="text-gray-500 text-sm">Score</span>
+            <span className="text-3xl font-bold text-gray-900">{store.complianceScore}%</span>
           </div>
           <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-            <div 
-              className={`h-2 rounded-full ${store.complianceScore >= 80 ? 'bg-green-500' : 'bg-red-500'}`} 
-              style={{ width: `${store.complianceScore}%` }}
-            ></div>
+            <div
+              className={`h-2 rounded-full transition-all ${getComplianceColor(store.complianceScore)}`}
+              style={{ width: `${Math.min(store.complianceScore, 100)}%` }}
+            />
           </div>
-          <span className="px-3 py-1 rounded-full text-xs font-medium border bg-gray-50 border-gray-200">
+          <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(store.status)}`}>
             {store.status}
           </span>
         </div>
 
-        {/* Chain Info */}
+        {/* Chain & Audit Info Card */}
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-              <Building2 size={24} />
+              <Building2 size={20} />
             </div>
             <h3 className="font-semibold text-gray-900">Chain Info</h3>
           </div>
-          <p className="text-sm text-gray-600">Part of the <span className="font-semibold">{store.chainName}</span> retail chain.</p>
+          <p className="text-sm text-gray-600 mb-4">
+            Part of the <span className="font-semibold text-gray-900">{store.chainName}</span> retail chain.
+          </p>
+
+          {/* Audit Count */}
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+            <div className="p-2 bg-orange-50 text-orange-500 rounded-lg">
+              <ClipboardList size={18} />
+            </div>
+            <div>
+              <div className="text-xl font-bold text-gray-900">{store.auditCount}</div>
+              <div className="text-xs text-gray-400">
+                Total audit{store.auditCount !== 1 ? 's' : ''} completed
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
-      
     </div>
   );
 };

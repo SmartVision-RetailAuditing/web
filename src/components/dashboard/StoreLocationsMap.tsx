@@ -41,7 +41,7 @@ const StoreLocationsMap = () => {
         setIsLoading(true);
         // Haritaya tüm mağazaları basmak için yüksek bir limit (örn: 100) veriyoruz
         const data = await storeService.getAllStores(1, 100);
-        setStores(data);
+        setStores(data.data);
       } catch (error) {
         console.error('Harita verileri çekilemedi:', error);
       } finally {
