@@ -1,47 +1,90 @@
-// Backend'deki Audit entity'sine dayanarak oluşturulan DTO [cite: 257-295]
+// DTOs
+export interface AuditProductDto {
+  id: number;
+  auditId: number;
+  productName: string;
+  productCode: string;
+  brandName: string;
+  price: number;
+  isManuallyEdited: boolean;
+  boundingBoxX: number;
+  boundingBoxY: number;
+  boundingBoxWidth: number;
+  boundingBoxHeight: number;
+  confidenceScore: number;
+}
+
+export interface AuditIssueDto {
+  id: number;
+  auditId: number;
+  issueType: string;
+  severity: string; // 'CRITICAL' | 'MEDIUM' | 'LOW'
+  description: string;
+}
+
 export interface AuditDto {
   id: number;
   taskId: number;
-  storeName: string;      // DTO'da flat (düzleştirilmiş) olarak geleceğini varsayıyoruz
-  auditorName: string;    // DTO'da flat olarak geleceğini varsayıyoruz
-  captureDate: string;    // DateTime
+  storeId: number;
+  userId: number;
+  storeName: string;
+  auditorName: string;
+  taskType: string;
+  imageUrl?: string;
+  captureDate: string;
   complianceScore: number;
   shelfSharePercentage: number;
-  status: 'COMPLIANT' | 'WARNING' | 'NON_COMPLIANT'; // Enum karşılığı [cite: 255]
-  issueCount?: number;    // AuditIssue listesinin eleman sayısı
+  status: string; // 'COMPLIANT' | 'WARNING' | 'NON_COMPLIANT'
+  brandDistributionJson?: string;
+  products: AuditProductDto[];
+  issues: AuditIssueDto[];
 }
 
-// Varsayılan Endpoint (Eğer backend'de farklıysa burayı güncelleyebiliriz)
-//const API_URL = 'https://smartvisionbackend-d4bfdra8f4b6gmad.swedencentral-01.azurewebsites.net/api/Audits';
-const API_URL = 'http://localhost:5000/api/Auth';
+export interface PagedResult<T> {
+  data: T[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+const API_URL = 'http://localhost:5000/api/Audits';
+
+const authHeaders = (): HeadersInit => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}`,
+});
 
 export const auditService = {
-  getAllAudits: async (page = 1, size = 10): Promise<AuditDto[]> => {
-    const token = localStorage.getItem('smartvision_token');
-    
-    const response = await fetch(`${API_URL}?page=${page}&size=${size}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-    });
+  // GET /api/Audits?page=1&size=10&search=migros&status=WARNING
+  getAllAudits: async (
+    page = 1,
+    size = 10,
+    search?: string,
+    status?: string,
+  ): Promise<PagedResult<AuditDto>> => {
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    if (search?.trim()) params.append('search', search.trim());
+    if (status?.trim()) params.append('status', status.trim());
 
-    // Eğer backend'de henüz bu endpoint yoksa, ekranın çökmemesi için sahte (mock) veri dönüyoruz.
-    // Backend hazır olduğunda aşağıdaki IF bloğunu aktifleştirebilirsin.
-    
-    if (!response.ok) {
-       console.warn("API/Audits endpoint'i bulunamadı. Şimdilik Mock veri gösteriliyor.");
-       return getMockAudits(); // Geçici mock fonksiyonu
-    }
-    
+    const response = await fetch(`${API_URL}?${params}`, { headers: authHeaders() });
+    if (!response.ok) throw new Error('Auditler yüklenemedi.');
     return response.json();
-  }
-};
+  },
 
-// BACKEND HAZIR OLANA KADAR UI'I TEST ETMEK İÇİN GEÇİCİ VERİ
-const getMockAudits = (): AuditDto[] => [
-  { id: 4821, taskId: 1, storeName: 'Walmart #4521', auditorName: 'Mike Chen', captureDate: '2024-12-12T09:15:00', complianceScore: 92, shelfSharePercentage: 28.5, status: 'COMPLIANT', issueCount: 0 },
-  { id: 4820, taskId: 2, storeName: 'Target #2134', auditorName: 'Sarah Parker', captureDate: '2024-12-12T08:45:00', complianceScore: 68, shelfSharePercentage: 18.2, status: 'WARNING', issueCount: 2 },
-  { id: 4819, taskId: 3, storeName: 'Kroger #8765', auditorName: 'James Wilson', captureDate: '2024-12-11T16:30:00', complianceScore: 45, shelfSharePercentage: 12.1, status: 'NON_COMPLIANT', issueCount: 5 },
-];
+  // GET /api/Audits/:id
+  getAuditById: async (id: string | number): Promise<AuditDto> => {
+    const response = await fetch(`${API_URL}/${id}`, { headers: authHeaders() });
+    if (!response.ok) throw new Error('Audit detayı bulunamadı.');
+    return response.json();
+  },
+
+  // DELETE /api/Audits/:id — sadece ADMIN
+  deleteAudit: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (!response.ok) throw new Error('Silme işlemi başarısız.');
+  },
+};
