@@ -1,58 +1,78 @@
-// src/app/layout/Sidebar.tsx
-// This component represents the sidebar navigation of the application.
-// It includes the logo area, navigation links, and a logout button.
-// The sidebar is fixed on the left side of the screen.
-// It uses React Router's NavLink for navigation and lucide-react for icons.
-// The active link is styled differently to indicate the current page.
-// Tailwind CSS is used for styling.
-// Note: Replace the logo placeholder with the actual logo image as needed.
-// Example: import Logo from '../../assets/smartvision-logo.svg';
-// Then use <img src={Logo} alt="Smart Vision Logo" /> in the logo area.
-// Ensure that the necessary packages (react-router-dom, lucide-react, tailwindcss) are installed in your project.
-// Also, make sure to adjust the paths and imports according to your project structure.
-// This component is designed to be used alongside the TopBar component for a complete layout.
-// Adjust the height and width as necessary to fit your design requirements.
-
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom'; // useNavigate eklendi
-import { 
-  LayoutDashboard, 
-  Store, 
-  ClipboardCheck, 
-  CheckSquare, 
-  BarChart3, 
-  LogOut 
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, Store, ClipboardCheck,
+  CheckSquare, BarChart3, LogOut,
+  ShieldCheck, Users, ChevronDown, ChevronRight,
 } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
+// ─── Nav item tipleri ─────────────────────────────────────────────────────────
+interface NavItem {
+  path:  string;
+  label: string;
+  icon:  React.ElementType;
+}
+
+interface NavGroup {
+  label:    string;
+  icon:     React.ElementType;
+  children: NavItem[];
+}
+
+// ─── Menü tanımları ───────────────────────────────────────────────────────────
+const MAIN_MENU: NavItem[] = [
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { path: '/stores',    label: 'Stores',    icon: Store },
+  { path: '/audits',    label: 'Audits',    icon: ClipboardCheck },
+  { path: '/tasks',     label: 'Tasks',     icon: CheckSquare },
+  { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+];
+
+// Sadece ADMIN'e görünür
+const ADMIN_GROUP: NavGroup = {
+  label: 'Admin',
+  icon:  ShieldCheck,
+  children: [
+    { path: '/users', label: 'User Management', icon: Users },
+  ],
+};
+
+// ─── NavLink item bileşeni ────────────────────────────────────────────────────
+const NavItem: React.FC<{ item: NavItem }> = ({ item }) => (
+  <NavLink
+    to={item.path}
+    className={({ isActive }) =>
+      `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
+        isActive
+          ? 'bg-blue-50 text-blue-600'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+      }`
+    }
+  >
+    <item.icon size={20} />
+    {item.label}
+  </NavLink>
+);
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
 const Sidebar = () => {
-  const navigate = useNavigate(); // Yönlendirme için hook'u tanımladık
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+  const [adminOpen, setAdminOpen] = useState(true); // varsayılan açık
 
-  // Menü elements defined as array, easier to map through
-  const menuItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/stores', label: 'Stores', icon: Store },
-    { path: '/audits', label: 'Audits', icon: ClipboardCheck },
-    { path: '/tasks', label: 'Tasks', icon: CheckSquare },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-  ];
-
-  // Logout Fonksiyonu
   const handleLogout = () => {
-    // 1. Tarayıcıdaki token ve rol bilgilerini sil
     localStorage.removeItem('smartvision_token');
     localStorage.removeItem('smartvision_role');
-    
-    // 2. Login sayfasına yönlendir
     navigate('/login');
   };
 
-
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen fixed left-0 top-0 z-30">
-      {/* 1. Logo Area */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-100">
+
+      {/* Logo */}
+      <div className="h-16 flex items-center px-6 border-b border-gray-100 shrink-0">
         <div className="flex items-center gap-2 text-blue-600 font-bold text-xl">
-          {/* SmartVision Logo Here (smartvision-logo.svg) come, for now icon added. */}
           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
             <span className="text-lg">S</span>
           </div>
@@ -60,30 +80,48 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* 2. Navigation Links */}
-      <nav className="flex-1 py-6 px-3 space-y-1">
-        {menuItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium ${
-                isActive
-                  ? 'bg-blue-50 text-blue-600' // Active state
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' // Passive state
-              }`
-            }
-          >
-            <item.icon size={20} />
-            {item.label}
-          </NavLink>
+      {/* Navigation */}
+      <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+
+        {/* Ana menü */}
+        {MAIN_MENU.map(item => (
+          <NavItem key={item.path} item={item} />
         ))}
+
+        {/* Admin grubu — sadece ADMIN rolünde görünür */}
+        {isAdmin && (
+          <div className="pt-4">
+            {/* Grup başlığı */}
+            <button
+              onClick={() => setAdminOpen(v => !v)}
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-50"
+            >
+              <div className="flex items-center gap-2">
+                <ADMIN_GROUP.icon size={14} />
+                {ADMIN_GROUP.label}
+              </div>
+              {adminOpen
+                ? <ChevronDown size={13} />
+                : <ChevronRight size={13} />
+              }
+            </button>
+
+            {/* Grup içeriği — collapse/expand */}
+            {adminOpen && (
+              <div className="mt-1 space-y-1 pl-2 border-l-2 border-blue-50 ml-3">
+                {ADMIN_GROUP.children.map(item => (
+                  <NavItem key={item.path} item={item} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </nav>
 
-      {/* 3. Bottom Section (Logout etc.) */}
-      <div className="p-4 border-t border-gray-100">
-        <button 
-          onClick={handleLogout} // Fonksiyonu butona bağladık
+      {/* Logout */}
+      <div className="p-4 border-t border-gray-100 shrink-0">
+        <button
+          onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 w-full text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
         >
           <LogOut size={20} />
