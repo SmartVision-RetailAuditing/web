@@ -4,25 +4,21 @@ import { Toaster } from 'react-hot-toast';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
-// Auth guard RequireAuth.tsx'te yapılıyor — burada tekrar etmeye gerek yok
 const AppLayout = () => {
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
 
-      {/* Fixed Sidebar */}
+      {/* Sidebar — sticky, normal flow */}
       <Sidebar />
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-64 transition-all duration-300">
+      {/* Main Content — flex-1 sidebar'ın yanına oturur, ml gerekmez */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-6 scroll-smooth">
-          <div className="container mx-auto max-w-7xl">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
       </div>
 
-      {/* Toast Notifications */}
       <Toaster
         position="top-right"
         toastOptions={{

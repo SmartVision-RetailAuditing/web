@@ -123,17 +123,10 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Forgot password */}
-          <div className="flex justify-end">
-            <a href="#" className="text-xs font-medium text-gray-500 hover:text-blue-600 transition-colors">
-              Forgot password?
-            </a>
-          </div>
-
           {/* Submit */}
           <button
             type="submit" disabled={isLoading}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
+            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center mt-2"
           >
             {isLoading ? (
               <span className="flex items-center gap-2">

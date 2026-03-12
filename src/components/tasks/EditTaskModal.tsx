@@ -21,19 +21,20 @@ const taskTypeToIndex = (val: string) =>
 const priorityToIndex = (val: string) => ['LOW', 'MEDIUM', 'HIGH'].indexOf(val);
 const statusToIndex   = (val: string) => ['PENDING', 'IN_PROGRESS', 'COMPLETED'].indexOf(val);
 
+const inputClass = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none";
+const labelClass = "text-sm font-medium text-gray-700 dark:text-gray-300";
+
 const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSuccess, task }) => {
   const [formData, setFormData] = useState({
     taskType: '', priority: '', status: '', dueDate: '', description: '',
   });
 
-  // Store dropdown
   const [storeSearch, setStoreSearch]     = useState('');
   const [stores, setStores]               = useState<StoreDto[]>([]);
   const [selectedStore, setSelectedStore] = useState<StoreDto | null>(null);
   const [storeOpen, setStoreOpen]         = useState(false);
   const [storeFetching, setStoreFetching] = useState(false);
 
-  // Worker dropdown
   const [workerSearch, setWorkerSearch]     = useState('');
   const [workers, setWorkers]               = useState<UserDto[]>([]);
   const [selectedWorker, setSelectedWorker] = useState<UserDto | null>(null);
@@ -65,7 +66,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
   useEffect(() => { if (isOpen && storeOpen)  fetchStores(debouncedStore);  }, [debouncedStore,  storeOpen,  isOpen, fetchStores]);
   useEffect(() => { if (isOpen && workerOpen) fetchWorkers(debouncedWorker); }, [debouncedWorker, workerOpen, isOpen, fetchWorkers]);
 
-  // Modal açılınca mevcut task ile formu doldur
   useEffect(() => {
     if (!task || !isOpen) return;
     setFormData({
@@ -75,7 +75,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
       dueDate:     task.dueDate.split('T')[0],
       description: task.description ?? '',
     });
-    // Mevcut store ve worker'ı selected olarak set et
     setSelectedStore({ id: task.storeId, name: task.storeName, address: task.storeAddress } as StoreDto);
     setSelectedWorker(
       task.assigneeId
@@ -100,7 +99,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
     if (!selectedStore) { setError('Lütfen bir mağaza seçin.'); return; }
     setError('');
     setIsLoading(true);
-
     try {
       const payload: UpdateTaskDto = {
         storeId:     selectedStore.id,
@@ -111,7 +109,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
         description: formData.description || undefined,
         ...(selectedWorker && { userId: selectedWorker.id }),
       };
-
       await taskService.updateTask(task.id, payload);
       toast.success('Task başarıyla güncellendi!');
       onSuccess();
@@ -120,12 +117,9 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
       const msg = err.message || 'Task güncellenirken bir hata oluştu.';
       setError(msg);
       toast.error(msg);
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
-  // Dropdown bileşeni — tekrar kullanım için
   const SearchableDropdown = ({
     label, required = false, placeholder, selected, selectedLabel,
     isOpen: open, onToggle, search, onSearch, fetching, children,
@@ -137,28 +131,28 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
     fetching: boolean; children: React.ReactNode;
   }) => (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-gray-700">
+      <label className={labelClass}>
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
         <div
           onClick={onToggle}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm cursor-pointer flex items-center justify-between bg-white hover:border-blue-400 transition-colors"
+          className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm cursor-pointer flex items-center justify-between bg-white dark:bg-gray-800 hover:border-blue-400 transition-colors"
         >
-          <span className={selected ? 'text-gray-900' : 'text-gray-400'}>
+          <span className={selected ? 'text-gray-900 dark:text-white' : 'text-gray-400'}>
             {selected ? selectedLabel : placeholder}
           </span>
           <span className="text-gray-400 text-xs">{open ? '▲' : '▼'}</span>
         </div>
         {open && (
-          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-            <div className="p-2 border-b border-gray-100">
+          <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden">
+            <div className="p-2 border-b border-gray-100 dark:border-gray-700">
               <div className="relative">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   autoFocus type="text" placeholder="Search..." value={search}
                   onChange={e => onSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                 />
               </div>
             </div>
@@ -175,12 +169,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Edit Task</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Task</h2>
             <p className="text-xs text-gray-400 mt-0.5">{task.storeName} — #{task.id}</p>
           </div>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -190,7 +184,9 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">{error}</div>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-100 dark:border-red-900/30">
+              {error}
+            </div>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -207,12 +203,11 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
                 {stores.length === 0
                   ? <div className="p-3 text-center text-xs text-gray-400">No stores found.</div>
                   : stores.map(store => (
-                    <button
-                      key={store.id} type="button"
+                    <button key={store.id} type="button"
                       onClick={() => { setSelectedStore(store); setStoreOpen(false); setStoreSearch(''); }}
-                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
                     >
-                      <div className="font-medium text-gray-900">{store.name}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{store.name}</div>
                       <div className="text-xs text-gray-400 truncate">{store.address}</div>
                     </button>
                   ))}
@@ -231,17 +226,16 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
                 {workers.length === 0
                   ? <div className="p-3 text-center text-xs text-gray-400">No workers found.</div>
                   : workers.map(worker => (
-                    <button
-                      key={worker.id} type="button"
+                    <button key={worker.id} type="button"
                       onClick={() => { setSelectedWorker(worker); setWorkerOpen(false); setWorkerSearch(''); }}
-                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0"
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
                     >
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
                           {worker.fullName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{worker.fullName}</div>
+                          <div className="font-medium text-gray-900 dark:text-white">{worker.fullName}</div>
                           <div className="text-xs text-gray-400">{worker.email}</div>
                         </div>
                       </div>
@@ -252,53 +246,49 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, onSucces
 
             {/* Task Type */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Task Type <span className="text-red-500">*</span></label>
-              <select required name="taskType" value={formData.taskType} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+              <label className={labelClass}>Task Type <span className="text-red-500">*</span></label>
+              <select required name="taskType" value={formData.taskType} onChange={handleChange} className={inputClass}>
                 {TASK_TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
 
             {/* Priority */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Priority <span className="text-red-500">*</span></label>
-              <select required name="priority" value={formData.priority} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+              <label className={labelClass}>Priority <span className="text-red-500">*</span></label>
+              <select required name="priority" value={formData.priority} onChange={handleChange} className={inputClass}>
                 {PRIORITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
 
             {/* Status */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Status <span className="text-red-500">*</span></label>
-              <select required name="status" value={formData.status} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+              <label className={labelClass}>Status <span className="text-red-500">*</span></label>
+              <select required name="status" value={formData.status} onChange={handleChange} className={inputClass}>
                 {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             </div>
 
             {/* Due Date */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">Due Date <span className="text-red-500">*</span></label>
-              <input required type="date" name="dueDate" value={formData.dueDate} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+              <label className={labelClass}>Due Date <span className="text-red-500">*</span></label>
+              <input required type="date" name="dueDate" value={formData.dueDate} onChange={handleChange} className={inputClass} />
             </div>
 
             {/* Description */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Description <span className="ml-1.5 text-xs text-gray-400 font-normal">(optional)</span>
               </label>
               <textarea name="description" value={formData.description} onChange={handleChange}
                 rows={3} placeholder="Task details, special instructions..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none" />
+                className={`${inputClass} resize-none`} />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
             <button type="button" onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
               Cancel
             </button>
             <button type="submit" disabled={isLoading}
