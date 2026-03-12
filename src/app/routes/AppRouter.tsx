@@ -11,6 +11,8 @@ import TaskDetailPage from '../../pages/tasks/TaskDetailPage';
 import UsersPage from '../../pages/admin/users/UsersPage';
 import UserDetailPage from '../../pages/admin/users/UserDetailPage';
 import { RequireAuth, RequireGuest, RequireRole } from '../guards/RequireAuth';
+import AnalyticsPage from '../../pages/analytics/AnalyticsPage';
+import ProfilePage from '../../pages/profile/ProfilePage';
 
 const AppRouter = () => {
   return (
@@ -37,6 +39,8 @@ const AppRouter = () => {
             <Route path="/audits/:id"   element={<AuditDetailPage />} />
             <Route path="/tasks"        element={<TasksPage />} />
             <Route path="/tasks/:id"    element={<TaskDetailPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path='/profile' element={<ProfilePage />} />
 
             {/* Admin sayfaları — sadece ADMIN */}
             <Route element={<RequireRole roles={['ADMIN']} />}>

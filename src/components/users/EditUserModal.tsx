@@ -10,6 +10,9 @@ interface EditUserModalProps {
   user: UserDto;
 }
 
+const inputClass = "w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 outline-none";
+const labelClass = "text-sm font-medium text-gray-700 dark:text-gray-300";
+
 const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onSuccess, user }) => {
   const [formData, setFormData] = useState({
     fullName:   '',
@@ -84,22 +87,22 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onSucces
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Edit User</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{user.email} — #{user.id}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Edit User</h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{user.email} — #{user.id}</p>
           </div>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-100 dark:border-red-900/30">
               {error}
             </div>
           )}
@@ -108,34 +111,34 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onSucces
 
             {/* Full Name */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 required type="text" name="fullName" value={formData.fullName}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className={inputClass}
               />
             </div>
 
             {/* Email — readonly, değiştirilemez */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
+              <label className={labelClass}>Email</label>
               <input
                 type="email" value={user.email} disabled
-                className="w-full px-3 py-2 border border-gray-100 rounded-lg text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-100 dark:border-gray-800 rounded-lg text-sm bg-gray-50 dark:bg-gray-800/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-400">Email değiştirilemez.</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Email değiştirilemez.</p>
             </div>
 
             {/* Role */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 required name="role" value={formData.role} onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                className={inputClass}
               >
                 {ROLE_OPTIONS.map(o => (
                   <option key={o.value} value={o.value}>{o.label}</option>
@@ -145,35 +148,35 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onSucces
 
             {/* Employee ID */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Employee ID
-                <span className="ml-1.5 text-xs text-gray-400 font-normal">(optional)</span>
+                <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
               </label>
               <input
                 type="text" name="employeeId" value={formData.employeeId}
                 onChange={handleChange} placeholder="e.g. EMP-001"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className={inputClass}
               />
             </div>
 
             {/* Phone */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
+              <label className={labelClass}>
                 Phone
-                <span className="ml-1.5 text-xs text-gray-400 font-normal">(optional)</span>
+                <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
               </label>
               <input
                 type="tel" name="phone" value={formData.phone}
                 onChange={handleChange} placeholder="e.g. +90 555 123 4567"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                className={inputClass}
               />
             </div>
 
             {/* IsActive toggle */}
-            <div className="md:col-span-2 flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="md:col-span-2 flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-100 dark:border-gray-800">
               <div>
-                <p className="text-sm font-medium text-gray-700">Active Status</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Active Status</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
                   Inactive users cannot log in to the system.
                 </p>
               </div>
@@ -185,17 +188,17 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, onSucces
                   onChange={handleChange}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div className="w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500"></div>
               </label>
             </div>
 
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
             <button
               type="button" onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Cancel
             </button>

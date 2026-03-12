@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode'u class ile (eski darkMode: 'class' mantığı) tetiklemek için bu satırı ekleyin: */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* index.css içine eklenebilir */
 .leaflet-popup-content-wrapper {
   border-radius: 12px;
