@@ -1,27 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, AlertTriangle, ChevronRight } from 'lucide-react';
 import { dashboardService, RecentIssueDto } from '../../services/dashboard.service';
 
 const SEVERITY_STYLES = {
   CRITICAL: { badge: 'text-red-700 bg-red-50 border border-red-200', border: 'hover:border-l-red-500' },
+  HIGH:     { badge: 'text-orange-700 bg-orange-50 border border-orange-200', border: 'hover:border-l-orange-400' },
   MEDIUM:   { badge: 'text-yellow-700 bg-yellow-50 border border-yellow-200', border: 'hover:border-l-yellow-400' },
   LOW:      { badge: 'text-blue-700 bg-blue-50 border border-blue-200', border: 'hover:border-l-blue-400' },
 };
 
 const ISSUE_TYPE_LABELS: Record<string, string> = {
-  MISSING_PRODUCT: 'Eksik Ürün', WRONG_PRICE: 'Yanlış Fiyat',
-  LOW_SHELF_SHARE: 'Düşük Raf Payı', WRONG_SHELF_POSITION: 'Yanlış Konum',
-  PLANOGRAM_MISMATCH: 'Planogram İhlali',
+  MISSING_PRODUCT:      'Missing Product',
+  WRONG_PRICE:          'Wrong Price',
+  LOW_SHELF_SHARE:      'Low Shelf Share',
+  WRONG_SHELF_POSITION: 'Wrong Position',
+  PLANOGRAM_MISMATCH:   'Planogram Mismatch',
 };
 
 const formatTimeAgo = (dateStr: string): string => {
   const diff = Date.now() - new Date(dateStr).getTime();
   const minutes = Math.floor(diff / 60000);
-  if (minutes < 60) return `${minutes} dakika önce`;
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} saat önce`;
-  return `${Math.floor(hours / 24)} gün önce`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 };
 
 const FlaggedStoresList = () => {
@@ -44,7 +47,7 @@ const FlaggedStoresList = () => {
         <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/4 animate-pulse"></div>
       </div>
       <div className="space-y-4">
-        {[1,2,3].map(i => (
+        {[1, 2, 3].map(i => (
           <div key={i} className="animate-pulse space-y-2 pb-4 border-b border-gray-50 dark:border-gray-800">
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
             <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-3/4"></div>
@@ -57,7 +60,7 @@ const FlaggedStoresList = () => {
   if (error) return (
     <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
       <p className="text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-3">
-        Liste yüklenemedi: {error}
+        Failed to load list: {error}
       </p>
     </div>
   );
@@ -66,7 +69,7 @@ const FlaggedStoresList = () => {
     <div className="bg-white dark:bg-gray-900 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col h-full max-h-[560px]">
       <div className="mb-4 shrink-0">
         <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-          Son İşaretlenenler
+          Recently Flagged
           {issues.length > 0 && (
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -74,14 +77,14 @@ const FlaggedStoresList = () => {
             </span>
           )}
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Dikkat edilmesi gerekenler</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Items requiring attention</p>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-1 -mr-1 pr-1">
         {issues.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-400 gap-2">
             <AlertTriangle size={28} className="text-gray-300 dark:text-gray-600" />
-            <p className="text-sm">Bekleyen kritik hata yok.</p>
+            <p className="text-sm">No pending critical issues.</p>
           </div>
         ) : (
           issues.map(issue => {

@@ -112,7 +112,8 @@ export const getStatusLabel = (status: string) => {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
-const API_URL = 'http://localhost:5000/api/Tasks';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Tasks`;
 
 const authHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ export const taskService = {
     const response = await fetch(`${API_URL}/stats`, {
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Task istatistikleri yüklenemedi.');
+    if (!response.ok) throw new Error('Failed to load task statistics.');
     return response.json();
   },
 
@@ -152,7 +153,7 @@ export const taskService = {
     const response = await fetch(`${API_URL}?${params}`, {
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Task listesi yüklenemedi.');
+    if (!response.ok) throw new Error('Failed to load task list.');
     return response.json();
   },
 
@@ -161,7 +162,7 @@ export const taskService = {
     const response = await fetch(`${API_URL}/${id}`, {
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Task detayı bulunamadı.');
+    if (!response.ok) throw new Error('Task details not found.');
     return response.json();
   },
 
@@ -172,7 +173,7 @@ export const taskService = {
       headers: authHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Task oluşturulamadı.');
+    if (!response.ok) throw new Error('Task creation failed.');
     return response.json();
   },
 
@@ -183,7 +184,7 @@ export const taskService = {
       headers: authHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Task güncellenemedi.');
+    if (!response.ok) throw new Error('Task update failed.');
   },
 
   // DELETE /api/tasks/:id
@@ -192,6 +193,6 @@ export const taskService = {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}` },
     });
-    if (!response.ok) throw new Error('Task silinemedi.');
+    if (!response.ok) throw new Error('Task deletion failed.');
   },
 };

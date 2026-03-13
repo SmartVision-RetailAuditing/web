@@ -1,4 +1,3 @@
-import React from 'react';
 import KpiCards from '../../components/dashboard/KpiCards';
 import RecentAuditsTable from '../../components/dashboard/RecentAuditsTable';
 import StoreLocationsMap from '../../components/dashboard/StoreLocationsMap';
@@ -9,7 +8,7 @@ const DashboardPage = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p className="text-gray-500 dark:text-gray-400">Tüm perakende satış noktalarında uyumluluk performansını izleyin.</p>
+        <p className="text-gray-500 dark:text-gray-400">Monitor compliance performance across all retail locations.</p>
       </div>
       <KpiCards />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

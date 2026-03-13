@@ -7,7 +7,8 @@ export interface LoginResponseDto {
   token: string;
 }
 
-const API_URL = 'http://localhost:5000/api/Auth';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Auth`;
 
 export const authService = {
 

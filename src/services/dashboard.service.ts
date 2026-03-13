@@ -20,7 +20,7 @@ export interface RecentIssueDto {
   storeName: string;
   location: string;
   issueType: string;
-  severity: 'LOW' | 'MEDIUM' | 'CRITICAL';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   description: string;
   captureDate: string;
 }
@@ -36,8 +36,8 @@ export interface RecentAuditDto {
   captureDate: string;
 }
 
-
-const BASE_URL = 'http://localhost:5000/api/Dashboard';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Dashboard`;
 
 const authHeaders = () => ({
   'Content-Type': 'application/json',
@@ -45,15 +45,15 @@ const authHeaders = () => ({
 });
 
 const buildTrends = (kpis: DashboardKpiDto): DashboardKpiWithTrends['trends'] => ({
-  storesTrend:      `${kpis.totalStores} aktif mağaza`,
-  complianceTrend:  kpis.averageCompliance >= 80 ? 'Hedef üzerinde' : 'Hedefin altında',
-  tasksTrend:       kpis.pendingTasks === 0 ? 'Bekleyen görev yok' : `${kpis.pendingTasks} görev bekliyor`,
-  issuesTrend:      kpis.criticalIssues === 0 ? 'Kritik hata yok' : `${kpis.criticalIssues} acil aksiyon`,
+  storesTrend:     `${kpis.totalStores} active stores`,
+  complianceTrend: kpis.averageCompliance >= 80 ? 'Above target' : 'Below target',
+  tasksTrend:      kpis.pendingTasks === 0 ? 'No pending tasks' : `${kpis.pendingTasks} tasks pending`,
+  issuesTrend:     kpis.criticalIssues === 0 ? 'No critical issues' : `${kpis.criticalIssues} require immediate action`,
 });
 
 export const dashboardService = {
   getKpis: async (): Promise<DashboardKpiWithTrends> => {
-    const response = await fetch(`${BASE_URL}/kpis`, {
+    const response = await fetch(`${API_URL}/kpis`, {
       method: 'GET',
       headers: authHeaders(),
     });
@@ -66,7 +66,7 @@ export const dashboardService = {
   },
 
   getRecentIssues: async (): Promise<RecentIssueDto[]> => {
-    const response = await fetch(`${BASE_URL}/recent-issues`, {
+    const response = await fetch(`${API_URL}/recent-issues`, {
       method: 'GET',
       headers: authHeaders(),
     });
@@ -78,7 +78,7 @@ export const dashboardService = {
   },
 
   getRecentAudits: async (): Promise<RecentAuditDto[]> => {
-    const response = await fetch(`${BASE_URL}/recent-audits`, {
+    const response = await fetch(`${API_URL}/recent-audits`, {
       method: 'GET',
       headers: authHeaders(),
     });

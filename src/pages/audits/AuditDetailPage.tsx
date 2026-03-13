@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Store, User, Calendar, Activity, AlertTriangle, Package, BarChart2, Layers } from 'lucide-react';
 import { auditService, AuditDto } from '../../services/audits.service';
@@ -12,6 +12,7 @@ const STATUS_LABELS: Record<string, string> = { COMPLIANT: 'Compliant', WARNING:
 const TASK_TYPE_LABELS: Record<string, string> = { SHELF_AUDIT: 'Shelf Audit', PRICE_CHECK: 'Price Check', PLANOGRAM_COMPLIANCE: 'Planogram Compliance', PANORAMA: 'Panorama' };
 const SEVERITY_STYLES: Record<string, string> = {
   CRITICAL: 'bg-red-50 text-red-700 border-red-200',
+  HIGH: 'bg-orange-50 text-orange-700 border-orange-200',
   MEDIUM: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   LOW: 'bg-blue-50 text-blue-700 border-blue-200',
 };
@@ -110,7 +111,7 @@ const AuditDetailPage = () => {
             <p className="text-xs text-gray-400">Captured during audit</p>
           </div>
           <div className="p-4 bg-gray-50 dark:bg-gray-800 flex justify-center">
-            <img src={audit.imageUrl} alt="Shelf audit" className="max-h-80 rounded-lg object-contain shadow" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            <img src={audit.imageUrl} alt="Shelf audit" className="w-full h-[600px] rounded-lg object-contain shadow" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Store, Activity, ClipboardList, AlertOctagon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { dashboardService, DashboardKpiWithTrends } from '../../services/dashboard.service';
 
@@ -30,7 +30,7 @@ const KpiCards = () => {
 
   if (error) return (
     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 text-sm text-red-700 dark:text-red-400">
-      <strong>KPI yüklenemedi:</strong> {error}
+      <strong>Failed to load KPIs:</strong> {error}
     </div>
   );
 
@@ -42,7 +42,7 @@ const KpiCards = () => {
 
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-3">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Toplam Mağaza</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Stores</p>
           <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
             <Store size={20} />
           </div>
@@ -56,7 +56,7 @@ const KpiCards = () => {
 
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-3">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Genel Uyumluluk</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg. Compliance</p>
           <div className="p-2.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-xl">
             <Activity size={20} />
           </div>
@@ -70,7 +70,7 @@ const KpiCards = () => {
 
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col hover:shadow-md transition-shadow">
         <div className="flex justify-between items-start mb-3">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Bekleyen Görevler</p>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Tasks</p>
           <div className="p-2.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl">
             <ClipboardList size={20} />
           </div>
@@ -85,7 +85,7 @@ const KpiCards = () => {
       <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-red-50 dark:border-red-900/30 shadow-sm flex flex-col hover:shadow-md transition-shadow relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 dark:bg-red-900/20 rounded-full -mr-16 -mt-16"></div>
         <div className="flex justify-between items-start mb-3 relative z-10">
-          <p className="text-sm font-medium text-red-600 dark:text-red-400">Kritik Sorunlar</p>
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">Critical Issues</p>
           <div className={`p-2.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl ${kpis.criticalIssues > 0 ? 'animate-pulse' : ''}`}>
             <AlertOctagon size={20} />
           </div>
