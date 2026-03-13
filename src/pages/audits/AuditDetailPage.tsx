@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Store, User, Calendar, Activity, AlertTriangle, Package, BarChart2, Layers } from 'lucide-react';
-import { auditService, AuditDto } from '../../services/audits.service';
+import { auditService } from '../../services/audits.service';
+import type { AuditDto } from '../../services/audits.service';
 
 const STATUS_STYLES: Record<string, string> = {
   COMPLIANT: 'bg-green-50 text-green-700 border-green-200',

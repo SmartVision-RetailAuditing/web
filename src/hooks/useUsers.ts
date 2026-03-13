@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { userService, UserDto, PagedResult } from '../services/users.service';
+import { userService } from '../services/users.service';
+import type { UserDto, PagedResult } from '../services/users.service';
 import { useDebounce } from './useDebounce';
 
 const ITEMS_PER_PAGE = 10;

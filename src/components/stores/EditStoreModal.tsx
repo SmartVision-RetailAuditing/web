@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { storeService, StoreDto, UpdateStoreDto } from '../../services/stores.service';
+import { storeService } from '../../services/stores.service';
+import type { StoreDto } from '../../services/stores.service';
+// import type { UpdateStoreDto } from '../../services/stores.service';
 import toast from 'react-hot-toast';
 
 interface Props { isOpen: boolean; onClose: () => void; onSuccess: () => void; store: StoreDto; }

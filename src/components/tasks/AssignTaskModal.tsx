@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, UserPlus, Search, ChevronRight, ArrowLeft } from 'lucide-react';
-import { taskService, TaskDto, TASK_TYPE_LABELS, getPriorityColor } from '../../services/tasks.service';
-import { userService, UserDto } from '../../services/users.service';
+import { taskService, TASK_TYPE_LABELS, getPriorityColor } from '../../services/tasks.service';
+import type { TaskDto } from '../../services/tasks.service';
+import { userService } from '../../services/users.service';
+import type { UserDto } from '../../services/users.service';
 import { useDebounce } from '../../hooks/useDebounce';
 import toast from 'react-hot-toast';
 

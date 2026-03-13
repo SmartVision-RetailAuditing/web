@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Store, Activity, ClipboardList, AlertOctagon, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { dashboardService, DashboardKpiWithTrends } from '../../services/dashboard.service';
+import { dashboardService } from '../../services/dashboard.service';
+import type { DashboardKpiWithTrends } from '../../services/dashboard.service';
 
 const KpiCards = () => {
   const [kpis, setKpis] = useState<DashboardKpiWithTrends | null>(null);

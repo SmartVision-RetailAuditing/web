@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { taskService, TaskDto, TaskStatsDto, PagedResult } from '../services/tasks.service';
+import { taskService } from '../services/tasks.service';
+import type { TaskDto, TaskStatsDto, PagedResult } from '../services/tasks.service';
 import { useDebounce } from './useDebounce';
 
 const ITEMS_PER_PAGE = 10;

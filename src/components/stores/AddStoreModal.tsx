@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { storeService, CreateStoreDto } from '../../services/stores.service';
+import { storeService } from '../../services/stores.service';
+//import type { CreateStoreDto } from '../../services/stores.service';
 import toast from 'react-hot-toast';
 
 interface Props { isOpen: boolean; onClose: () => void; onSuccess: () => void; }

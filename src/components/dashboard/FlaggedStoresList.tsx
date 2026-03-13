@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, AlertTriangle, ChevronRight } from 'lucide-react';
-import { dashboardService, RecentIssueDto } from '../../services/dashboard.service';
+import { dashboardService } from '../../services/dashboard.service';
+import type { RecentIssueDto } from '../../services/dashboard.service';
 
 const SEVERITY_STYLES = {
   CRITICAL: { badge: 'text-red-700 bg-red-50 border border-red-200', border: 'hover:border-l-red-500' },

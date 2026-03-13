@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { storeService, StoreDto, PagedResult } from '../services/stores.service';
+import { storeService } from '../services/stores.service';
+import type { StoreDto, PagedResult } from '../services/stores.service';
 import { useDebounce } from './useDebounce';
 
 const ITEMS_PER_PAGE = 10;

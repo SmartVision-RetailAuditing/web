@@ -9,9 +9,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
-  taskService, TaskDto, TASK_TYPE_LABELS,
+  taskService, TASK_TYPE_LABELS,
   getPriorityColor, getStatusColor, getStatusLabel,
 } from '../../services/tasks.service';
+import type { TaskDto } from '../../services/tasks.service';
 import { useAuth } from '../../hooks/useAuth';
 import EditTaskModal from '../../components/tasks/EditTaskModal';
 import DeleteConfirmModal from '../../components/tasks/DeleteConfirmModal';

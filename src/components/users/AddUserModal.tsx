@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
-import { userService, CreateUserDto, ROLE_OPTIONS } from '../../services/users.service';
+import { userService, ROLE_OPTIONS } from '../../services/users.service';
 import toast from 'react-hot-toast';
 
 interface AddUserModalProps {

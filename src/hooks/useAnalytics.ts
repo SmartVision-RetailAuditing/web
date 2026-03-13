@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { analyticsService, AnalyticsDto } from '../services/analytics.service';
+import { analyticsService } from '../services/analytics.service';
+import type { AnalyticsDto } from '../services/analytics.service';
 
 export const useAnalytics = () => {
   const [days, setDays]         = useState<7 | 30 | 90>(30);

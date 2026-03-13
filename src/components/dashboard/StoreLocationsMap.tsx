@@ -4,7 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ExternalLink, Activity } from 'lucide-react';
-import { storeService, StoreDto } from '../../services/stores.service';
+import { storeService } from '../../services/stores.service';
+import type { StoreDto } from '../../services/stores.service';
 
 const createCustomIcon = (status: string) => {
   let colorClass = 'bg-gray-500';

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dashboardService, RecentAuditDto } from '../../services/dashboard.service';
+import { dashboardService } from '../../services/dashboard.service';
+import type { RecentAuditDto } from '../../services/dashboard.service';
 
 const STATUS_STYLES: Record<string, string> = {
   COMPLIANT:     'text-green-700 bg-green-50 border border-green-200',

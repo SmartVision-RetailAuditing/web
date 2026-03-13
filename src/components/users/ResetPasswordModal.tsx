@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Eye, EyeOff, KeyRound } from 'lucide-react';
-import { userService, UserDto } from '../../services/users.service';
+import { userService } from '../../services/users.service';
+import type { UserDto } from '../../services/users.service';
 import toast from 'react-hot-toast';
 
 interface ResetPasswordModalProps {
