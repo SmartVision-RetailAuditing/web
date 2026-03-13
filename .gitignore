@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# =========================
+# Secrets — NEVER commit these
+# =========================
+.env
+.env.development
+.env.production
+.env.local
+# .env.example → commitleniyor (secret yok, sadece şablon)
+.env.production

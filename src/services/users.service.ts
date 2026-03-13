@@ -69,7 +69,8 @@ export const getRoleLabel = (role: string) => {
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
-const API_URL = 'http://localhost:5000/api/Users';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Users`;
 
 const authHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',
@@ -90,14 +91,14 @@ export const userService = {
     if (role?.trim())   params.append('role',   role.trim());
 
     const response = await fetch(`${API_URL}?${params}`, { headers: authHeaders() });
-    if (!response.ok) throw new Error('Kullanıcı listesi yüklenemedi.');
+    if (!response.ok) throw new Error('Failed to load users list.');
     return response.json();
   },
 
   // GET /api/users/:id
   getUserById: async (id: number): Promise<UserDto> => {
     const response = await fetch(`${API_URL}/${id}`, { headers: authHeaders() });
-    if (!response.ok) throw new Error('Kullanıcı bulunamadı.');
+    if (!response.ok) throw new Error('User not found.');
     return response.json();
   },
 
@@ -107,7 +108,7 @@ export const userService = {
     if (search?.trim()) params.append('search', search.trim());
 
     const response = await fetch(`${API_URL}/field-workers?${params}`, { headers: authHeaders() });
-    if (!response.ok) throw new Error('Field worker listesi yüklenemedi.');
+    if (!response.ok) throw new Error('Field workers list could not be loaded.');
     return response.json();
   },
 
@@ -118,7 +119,7 @@ export const userService = {
       headers: authHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Kullanıcı oluşturulamadı.');
+    if (!response.ok) throw new Error('User creation failed.');
     return response.json();
   },
 
@@ -129,7 +130,7 @@ export const userService = {
       headers: authHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error('Güncelleme işlemi başarısız.');
+    if (!response.ok) throw new Error('User update failed.');
   },
 
   // PATCH /api/users/:id/toggle-active — soft delete
@@ -138,7 +139,7 @@ export const userService = {
       method: 'PATCH',
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Durum değiştirme işlemi başarısız.');
+    if (!response.ok) throw new Error('User activation toggle failed.');
   },
 
   // PATCH /api/users/:id/reset-password
@@ -148,6 +149,6 @@ export const userService = {
       headers: authHeaders(),
       body: JSON.stringify({ newPassword }),
     });
-    if (!response.ok) throw new Error('Şifre sıfırlama işlemi başarısız.');
+    if (!response.ok) throw new Error('User password reset failed.');
   },
 };

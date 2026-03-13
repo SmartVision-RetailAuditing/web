@@ -5,8 +5,10 @@ import {
   User, Mail, Phone, Briefcase, Shield, Calendar,
   ClipboardList, CheckCircle2, Clock, AlertCircle,
 } from 'lucide-react';
-import { userService, UserDto, getRoleColor, getRoleLabel } from '../../../services/users.service';
-import { taskService, TaskDto, TASK_TYPE_LABELS, getPriorityColor, getStatusColor, getStatusLabel } from '../../../services/tasks.service';
+import { userService, getRoleColor, getRoleLabel } from '../../../services/users.service';
+import type { UserDto } from '../../../services/users.service';
+import { taskService, TASK_TYPE_LABELS, getPriorityColor, getStatusColor, getStatusLabel } from '../../../services/tasks.service';
+import type { TaskDto } from '../../../services/tasks.service';
 import { useAuth } from '../../../hooks/useAuth';
 import EditUserModal from '../../../components/users/EditUserModal';
 import ResetPasswordModal from '../../../components/users/ResetPasswordModal';

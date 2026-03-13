@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, Plus, ChevronLeft, ChevronRight,
@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { useUsers } from '../../../hooks/useUsers';
 import { useAuth } from '../../../hooks/useAuth';
-import { getRoleColor, getRoleLabel, ROLE_OPTIONS } from '../../../services/users.service';
+import { getRoleColor, getRoleLabel} from '../../../services/users.service';
 import AddUserModal from '../../../components/users/AddUserModal';
 
 const ROLE_TABS = [

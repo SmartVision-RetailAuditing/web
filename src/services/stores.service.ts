@@ -38,7 +38,8 @@ export interface PagedResult<T> {
   pageSize: number;
 }
 
-const API_URL = 'http://localhost:5000/api/Stores';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Stores`;
 
 const authHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',
@@ -62,7 +63,7 @@ export const storeService = {
       headers: authHeaders(),
     });
 
-    if (!response.ok) throw new Error('Mağazalar yüklenemedi.');
+    if (!response.ok) throw new Error('Stores could not be loaded.');
     return response.json(); // PagedResult<StoreDto>
   },
 
@@ -72,7 +73,7 @@ export const storeService = {
       headers: authHeaders(),
     });
 
-    if (!response.ok) throw new Error('Mağaza detayı bulunamadı.');
+    if (!response.ok) throw new Error('Store details not found.');
     return response.json();
   },
 
@@ -84,7 +85,7 @@ export const storeService = {
       body: JSON.stringify(storeData),
     });
 
-    if (!response.ok) throw new Error('Mağaza oluşturulamadı.');
+    if (!response.ok) throw new Error('Store creation failed.');
     return response.json();
   },
 
@@ -96,7 +97,7 @@ export const storeService = {
       body: JSON.stringify(storeData),
     });
 
-    if (!response.ok) throw new Error('Güncelleme işlemi başarısız.');
+    if (!response.ok) throw new Error('Store update failed.');
   },
 
   // DELETE /api/Stores/:id — 204 No Content döner
@@ -106,6 +107,6 @@ export const storeService = {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}` },
     });
 
-    if (!response.ok) throw new Error('Silme işlemi başarısız.');
+    if (!response.ok) throw new Error('Store deletion failed.');
   },
 };

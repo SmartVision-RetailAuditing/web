@@ -18,7 +18,7 @@ export interface AuditIssueDto {
   id: number;
   auditId: number;
   issueType: string;
-  severity: string; // 'CRITICAL' | 'MEDIUM' | 'LOW'
+  severity: string; // 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
   description: string;
 }
 
@@ -48,7 +48,8 @@ export interface PagedResult<T> {
   pageSize: number;
 }
 
-const API_URL = 'http://localhost:5000/api/Audits';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Audits`;
 
 const authHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',
@@ -68,14 +69,14 @@ export const auditService = {
     if (status?.trim()) params.append('status', status.trim());
 
     const response = await fetch(`${API_URL}?${params}`, { headers: authHeaders() });
-    if (!response.ok) throw new Error('Auditler yüklenemedi.');
+    if (!response.ok) throw new Error('Audits could not be loaded.');
     return response.json();
   },
 
   // GET /api/Audits/:id
   getAuditById: async (id: string | number): Promise<AuditDto> => {
     const response = await fetch(`${API_URL}/${id}`, { headers: authHeaders() });
-    if (!response.ok) throw new Error('Audit detayı bulunamadı.');
+    if (!response.ok) throw new Error('Audit details not found.');
     return response.json();
   },
 
@@ -85,6 +86,6 @@ export const auditService = {
       method: 'DELETE',
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Silme işlemi başarısız.');
+    if (!response.ok) throw new Error('Audit deletion failed.');
   },
 };

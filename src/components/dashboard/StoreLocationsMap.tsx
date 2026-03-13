@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ExternalLink, Activity } from 'lucide-react';
-import { storeService, StoreDto } from '../../services/stores.service';
+import { storeService } from '../../services/stores.service';
+import type { StoreDto } from '../../services/stores.service';
 
 const createCustomIcon = (status: string) => {
   let colorClass = 'bg-gray-500';
@@ -30,7 +31,7 @@ const StoreLocationsMap = () => {
   useEffect(() => {
     storeService.getAllStores(1, 100)
       .then(data => setStores(data.data))
-      .catch(err => console.error('Harita verileri çekilemedi:', err))
+      .catch(err => console.error('Failed to load map data:', err))
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -38,8 +39,8 @@ const StoreLocationsMap = () => {
     <div className="bg-white dark:bg-gray-900 p-5 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Mağaza Konumları</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Canlı uyumluluk haritası (İzmir)</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Store Locations</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Live compliance map (İzmir)</p>
         </div>
         <div className="flex items-center gap-3 text-xs font-medium text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span> Compliant</span>
@@ -51,7 +52,7 @@ const StoreLocationsMap = () => {
       <div className="rounded-xl overflow-hidden flex-1 min-h-[400px] bg-gray-50 dark:bg-gray-800 relative">
         {isLoading ? (
           <div className="absolute inset-0 flex items-center justify-center z-10 text-gray-500 dark:text-gray-400">
-            Harita yükleniyor...
+            Loading map...
           </div>
         ) : (
           <MapContainer center={MAP_CENTER} zoom={10} scrollWheelZoom={true} style={{ height: '100%', width: '100%', zIndex: 0 }}>

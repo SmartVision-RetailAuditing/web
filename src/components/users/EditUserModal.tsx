@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { userService, UserDto, UpdateUserDto, ROLE_OPTIONS } from '../../services/users.service';
+import { userService, ROLE_OPTIONS } from '../../services/users.service';
+import type { UserDto, UpdateUserDto } from '../../services/users.service';
 import toast from 'react-hot-toast';
 
 interface EditUserModalProps {

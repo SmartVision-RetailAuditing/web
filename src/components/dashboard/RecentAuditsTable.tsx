@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dashboardService, RecentAuditDto } from '../../services/dashboard.service';
+import { dashboardService } from '../../services/dashboard.service';
+import type { RecentAuditDto } from '../../services/dashboard.service';
 
 const STATUS_STYLES: Record<string, string> = {
   COMPLIANT:     'text-green-700 bg-green-50 border border-green-200',
@@ -47,8 +48,8 @@ const RecentAuditsTable = () => {
     <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
         <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Son Denetimler</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">Son saha etkinlikleri</p>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Recent Audits</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Latest field activity</p>
         </div>
         <button onClick={() => navigate('/audits')} className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
           View All →
@@ -57,7 +58,7 @@ const RecentAuditsTable = () => {
 
       {isLoading && (
         <div className="divide-y divide-gray-50 dark:divide-gray-800">
-          {[1,2,3,4].map(i => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="px-6 py-4 animate-pulse flex gap-4 items-center">
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
@@ -72,7 +73,7 @@ const RecentAuditsTable = () => {
 
       {error && (
         <div className="px-6 py-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 border-t border-red-100 dark:border-red-900/30">
-          Tablo yüklenemedi: {error}
+          Failed to load table: {error}
         </div>
       )}
 
@@ -91,7 +92,7 @@ const RecentAuditsTable = () => {
             </thead>
             <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {audits.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400">Henüz tamamlanmış audit yok.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400">No completed audits yet.</td></tr>
               ) : (
                 audits.map(audit => {
                   const scoreColor = getScoreColor(audit.complianceScore);

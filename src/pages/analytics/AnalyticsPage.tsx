@@ -80,8 +80,8 @@ const AnalyticsPage = () => {
                     <Cell key={entry.issueType} fill={ISSUE_COLORS[entry.issueType] ?? '#94a3b8'} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number, name: string) => [value, name]}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }} />
+                <Tooltip formatter={(value, name) => [value, name]}
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }}/>
                 <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '12px', paddingTop: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
@@ -101,8 +101,8 @@ const AnalyticsPage = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                 <XAxis dataKey="chainName" tick={{ fontSize: 12 }} />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => [`${value}%`, 'Compliance']}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }} />
+                <Tooltip formatter={(value) => [`${value}%`, 'Compliance']}
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' }}/>
                 <Bar dataKey="avgCompliance" name="Compliance %" radius={[4, 4, 0, 0]}>
                   {data.chainMetrics.map((entry) => (
                     <Cell key={entry.chainName} fill={complianceBarColor(entry.avgCompliance)} />

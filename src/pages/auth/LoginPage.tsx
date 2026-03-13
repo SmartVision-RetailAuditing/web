@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 import { authService } from '../../services/auth.service';
+import logo from '../../assets/icons/smartvision-avatar-512.png';
 
 // .NET Core ClaimTypes tam URL formatında geliyor
 const CLAIM_ROLE = 'http://schemas.microsoft.com/ws/2008/06/identity/claims/role';
@@ -66,9 +67,7 @@ const LoginPage = () => {
 
         {/* Logo ve Başlık */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mb-4">
-            <div className="text-white font-bold text-lg">S</div>
-          </div>
+          <img src={logo} alt="SmartVision" className="w-16 h-16 rounded-full mb-4 mx-auto" />
           <h1 className="text-2xl font-semibold text-gray-900 mb-2">Sign In</h1>
           <p className="text-sm text-gray-500">Enter your corporate email to continue</p>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus, MapPin, TrendingUp, TrendingDown, Store as StoreIcon, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { useStores } from '../../hooks/useStores';

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { User, Mail, Phone, Briefcase, Shield, KeyRound } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getRoleColor, getRoleLabel } from '../../services/users.service';
-import { profileService, UserProfileDto } from '../../services/profile.service';
+import { profileService } from '../../services/profile.service';
+import type { UserProfileDto } from '../../services/profile.service';
 import ChangePasswordModal from '../../components/profile/ChangePasswordModal';
 
 const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value: React.ReactNode }> = ({ icon, label, value }) => (

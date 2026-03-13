@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Search } from 'lucide-react';
 import {
-  taskService, TaskDto, UpdateTaskDto,
-  TASK_TYPE_OPTIONS, PRIORITY_OPTIONS, STATUS_OPTIONS,
-} from '../../services/tasks.service';
-import { userService, UserDto } from '../../services/users.service';
-import { storeService, StoreDto } from '../../services/stores.service';
+taskService, TASK_TYPE_OPTIONS, PRIORITY_OPTIONS, STATUS_OPTIONS } from '../../services/tasks.service';
+import type { TaskDto } from '../../services/tasks.service';
+import type { UpdateTaskDto } from '../../services/tasks.service';
+import { userService } from '../../services/users.service';
+import type { UserDto } from '../../services/users.service';
+import { storeService } from '../../services/stores.service';
+import type { StoreDto } from '../../services/stores.service';
 import { useDebounce } from '../../hooks/useDebounce';
 import toast from 'react-hot-toast';
 

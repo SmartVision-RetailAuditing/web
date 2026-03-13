@@ -1,6 +1,5 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, TrendingUp, TrendingDown, Filter } from 'lucide-react';
+import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, Filter } from 'lucide-react';
 import { useAudits } from '../../hooks/useAudits';
 
 const STATUS_OPTIONS = [

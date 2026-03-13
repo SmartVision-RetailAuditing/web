@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api/Analytics';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = `${BASE_URL}/Analytics`;
 
 const authHeaders = () => ({
   'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ export const analyticsService = {
     const response = await fetch(`${API_URL}?days=${days}`, {
       headers: authHeaders(),
     });
-    if (!response.ok) throw new Error('Analytics verisi yüklenemedi.');
+    if (!response.ok) throw new Error('Analytics data could not be loaded.');
     return response.json();
   },
 };

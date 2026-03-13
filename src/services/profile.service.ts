@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const authHeaders = () => ({
   'Content-Type': 'application/json',
@@ -22,13 +22,13 @@ export interface ChangePasswordDto {
 // ─── Service ─────────────────────────────────────────────────────────────────
 export const profileService = {
   getProfile: async (): Promise<UserProfileDto> => {
-    const res = await fetch(`${API_URL}/Users/profile`, { headers: authHeaders() });
+    const res = await fetch(`${BASE_URL}/Users/profile`, { headers: authHeaders() });
     if (!res.ok) throw new Error('Profile could not be loaded.');
     return res.json();
   },
 
   changePassword: async (dto: ChangePasswordDto): Promise<void> => {
-    const res = await fetch(`${API_URL}/Auth/change-password`, {
+    const res = await fetch(`${BASE_URL}/Auth/change-password`, {
       method:  'POST',
       headers: authHeaders(),
       body:    JSON.stringify(dto),

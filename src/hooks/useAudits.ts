@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { auditService, AuditDto, PagedResult } from '../services/audits.service';
+import { auditService } from '../services/audits.service';
+import type { AuditDto, PagedResult } from '../services/audits.service'
 import { useDebounce } from './useDebounce';
 
 const ITEMS_PER_PAGE = 10;
