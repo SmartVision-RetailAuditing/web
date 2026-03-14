@@ -5,6 +5,7 @@ import {
   Users, BarChart2, ChevronDown, ChevronRight, Menu, X,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import logo from '../../assets/icons/smartvision-avatar-512.png';
 
 interface NavItem {
   label: string;
@@ -32,8 +33,8 @@ const linkClass = (isActive: boolean) =>
   }`;
 
 const Sidebar: React.FC = () => {
-  const { isAdmin }          = useAuth();
-  const location             = useLocation();
+  const { isAdmin }               = useAuth();
+  const location                  = useLocation();
   const [adminOpen, setAdminOpen] = useState(
     ADMIN_GROUP.some(item => location.pathname.startsWith(item.path))
   );
@@ -44,9 +45,7 @@ const Sidebar: React.FC = () => {
       {/* Logo */}
       <div className="h-16 flex items-center px-5 border-b border-gray-100 dark:border-gray-800 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <BarChart2 size={16} className="text-white" />
-          </div>
+          <img src={logo} alt="SmartVision" className="w-8 h-8 rounded-lg" />
           <span className="font-bold text-gray-900 dark:text-white text-lg">SmartVision</span>
         </div>
       </div>
@@ -63,7 +62,6 @@ const Sidebar: React.FC = () => {
           </NavLink>
         ))}
 
-        {/* Admin grubu */}
         {isAdmin && (
           <div className="pt-2">
             <button
@@ -71,12 +69,8 @@ const Sidebar: React.FC = () => {
               className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <span>Administration</span>
-              {adminOpen
-                ? <ChevronDown size={14} />
-                : <ChevronRight size={14} />
-              }
+              {adminOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
-
             {adminOpen && (
               <div className="space-y-1 mt-1">
                 {ADMIN_GROUP.map(item => (
@@ -94,7 +88,6 @@ const Sidebar: React.FC = () => {
         )}
       </nav>
 
-      {/* Footer — sadece versiyon, logout TopBar'a taşındı */}
       <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800 shrink-0">
         <p className="text-xs text-gray-400">SmartVision v1.0</p>
       </div>
@@ -103,12 +96,10 @@ const Sidebar: React.FC = () => {
 
   return (
     <>
-      {/* Desktop sidebar */}
       <aside className="hidden lg:flex flex-col w-60 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 h-screen sticky top-0 shrink-0">
         <SidebarContent />
       </aside>
 
-      {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md text-gray-700 dark:text-gray-300"
@@ -116,7 +107,6 @@ const Sidebar: React.FC = () => {
         <Menu size={20} />
       </button>
 
-      {/* Mobile drawer */}
       {mobileOpen && (
         <>
           <div className="lg:hidden fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"

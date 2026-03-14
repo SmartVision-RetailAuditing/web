@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { auditService } from '../services/audits.service';
-import type { AuditDto, PagedResult } from '../services/audits.service'
+import type { AuditDto, PagedResult } from '../services/audits.service';
 import { useDebounce } from './useDebounce';
 
 const ITEMS_PER_PAGE = 10;
 
-export const useAudits = () => {
+export const useAudits = (initialStoreId?: number) => {  // ← sadece bu satır değişti
   const [result, setResult] = useState<PagedResult<AuditDto> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState(''); // '' | 'COMPLIANT' | 'WARNING' | 'NON_COMPLIANT'
+  const [statusFilter, setStatusFilter] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 400);
 
-  // Search veya status değişince sayfa 1'e dön
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, statusFilter]);
@@ -29,6 +28,7 @@ export const useAudits = () => {
         ITEMS_PER_PAGE,
         search || undefined,
         status || undefined,
+        initialStoreId,        // ← sadece bu satır eklendi
       );
       setResult(data);
     } catch (err: any) {
@@ -36,7 +36,7 @@ export const useAudits = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [initialStoreId]);          // ← dependency'e eklendi
 
   useEffect(() => {
     fetchAudits(currentPage, debouncedSearch, statusFilter);
