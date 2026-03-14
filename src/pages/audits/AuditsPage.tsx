@@ -1,18 +1,25 @@
-import { useNavigate } from 'react-router-dom';
-import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, Filter } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, Filter, ArrowLeft } from 'lucide-react';
 import { useAudits } from '../../hooks/useAudits';
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All Statuses' }, { value: 'COMPLIANT', label: 'Compliant' },
-  { value: 'WARNING', label: 'Warning' }, { value: 'NON_COMPLIANT', label: 'Non-Compliant' },
+  { value: '', label: 'All Statuses' },
+  { value: 'COMPLIANT', label: 'Compliant' },
+  { value: 'WARNING', label: 'Warning' },
+  { value: 'NON_COMPLIANT', label: 'Non-Compliant' },
 ];
 const STATUS_STYLES: Record<string, string> = {
-  COMPLIANT: 'bg-green-50 text-green-700 border-green-200',
-  WARNING: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  COMPLIANT:     'bg-green-50 text-green-700 border-green-200',
+  WARNING:       'bg-yellow-50 text-yellow-700 border-yellow-200',
   NON_COMPLIANT: 'bg-red-50 text-red-700 border-red-200',
 };
-const STATUS_LABELS: Record<string, string> = { COMPLIANT: 'Compliant', WARNING: 'Warning', NON_COMPLIANT: 'Non-Compliant' };
-const TASK_TYPE_LABELS: Record<string, string> = { SHELF_AUDIT: 'Shelf Audit', PRICE_CHECK: 'Price Check', PLANOGRAM_COMPLIANCE: 'Planogram', PANORAMA: 'Panorama' };
+const STATUS_LABELS: Record<string, string> = {
+  COMPLIANT: 'Compliant', WARNING: 'Warning', NON_COMPLIANT: 'Non-Compliant',
+};
+const TASK_TYPE_LABELS: Record<string, string> = {
+  SHELF_AUDIT: 'Shelf Audit', PRICE_CHECK: 'Price Check',
+  PLANOGRAM_COMPLIANCE: 'Planogram', PANORAMA: 'Panorama',
+};
 
 const getComplianceColor = (score: number) => {
   if (score >= 80) return { bar: 'bg-green-500', text: 'text-green-700 dark:text-green-400' };
@@ -20,58 +27,118 @@ const getComplianceColor = (score: number) => {
   return { bar: 'bg-red-500', text: 'text-red-700 dark:text-red-400' };
 };
 
-const formatDate = (dateStr: string) => new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
 
 const AuditsPage = () => {
   const navigate = useNavigate();
-  const { audits, totalCount, totalPages, currentPage, setCurrentPage, isLoading, error, searchTerm, setSearchTerm, statusFilter, setStatusFilter, refresh } = useAudits();
+  const [searchParams] = useSearchParams();
+
+  const storeIdParam   = searchParams.get('storeId');
+  const storeNameParam = searchParams.get('storeName');
+  const storeId        = storeIdParam ? Number(storeIdParam) : undefined;
+  const isFiltered     = !!storeId;
+
+  const {
+    audits, totalCount, totalPages, currentPage, setCurrentPage,
+    isLoading, error, searchTerm, setSearchTerm,
+    statusFilter, setStatusFilter, refresh,
+  } = useAudits(storeId);
 
   return (
     <div className="space-y-6">
+
+      {/* Başlık */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Audits</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{totalCount > 0 ? `${totalCount} audit record${totalCount > 1 ? 's' : ''}` : 'Field audit records'}</p>
+          {isFiltered ? (
+            <>
+              <div className="flex items-center gap-3 mb-1">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                >
+                  <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
+                </button>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {storeNameParam ?? 'Store Audits'}
+                </h1>
+              </div>
+              <p className="text-sm text-gray-400 ml-9">
+                {totalCount > 0
+                  ? `${totalCount} audit record${totalCount > 1 ? 's' : ''} for this store`
+                  : 'No audit records found for this store.'}
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Audits</h1>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                {totalCount > 0 ? `${totalCount} audit record${totalCount > 1 ? 's' : ''}` : 'Field audit records'}
+              </p>
+            </>
+          )}
         </div>
       </div>
 
+      {/* Filtreler */}
       <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input type="text" placeholder="Search by store or auditor..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+          <input
+            type="text"
+            placeholder={isFiltered ? 'Search by auditor...' : 'Search by store or auditor...'}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
         </div>
         <div className="relative">
           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-            className="pl-9 pr-8 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer min-w-[160px]">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="pl-9 pr-8 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer min-w-[160px]"
+          >
             {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
           </select>
           <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90" size={14} />
         </div>
       </div>
 
+      {/* Hata */}
       {error && (
         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">
-          <AlertCircle size={18} className="shrink-0" /><span>{error}</span>
+          <AlertCircle size={18} className="shrink-0" />
+          <span>{error}</span>
           <button onClick={refresh} className="ml-auto text-red-600 underline hover:no-underline">Retry</button>
         </div>
       )}
 
+      {/* Tablo */}
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col">
         {isLoading ? (
           <div className="p-12 text-center text-gray-400 text-sm">Loading audits...</div>
         ) : audits.length === 0 ? (
-          <div className="p-12 text-center text-gray-400 text-sm">{searchTerm || statusFilter ? 'No audits match your filters.' : 'No audit records found.'}</div>
+          <div className="p-12 text-center text-gray-400 text-sm">
+            {searchTerm || statusFilter ? 'No audits match your filters.' : 'No audit records found.'}
+          </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wide border-b border-gray-100 dark:border-gray-800">
                   <tr>
-                    <th className="px-6 py-4">Store</th><th className="px-6 py-4">Auditor / Task</th>
-                    <th className="px-6 py-4">Compliance</th><th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Date</th><th className="px-6 py-4">Issues</th>
+                    {/* Store filtreli değilse Store sütunu göster, filtreli ise Audit # */}
+                    {isFiltered
+                      ? <th className="px-6 py-4 w-16">#</th>
+                      : <th className="px-6 py-4">Store</th>
+                    }
+                    <th className="px-6 py-4">Auditor / Task</th>
+                    <th className="px-6 py-4">Compliance</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4">Issues</th>
                     <th className="px-6 py-4 text-right">Action</th>
                   </tr>
                 </thead>
@@ -81,21 +148,33 @@ const AuditsPage = () => {
                     const criticalCount = audit.issues.filter(i => i.severity === 'CRITICAL').length;
                     return (
                       <tr key={audit.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0"><ClipboardList size={16} /></div>
-                            <div>
-                              <div className="font-medium text-gray-900 dark:text-white">{audit.storeName}</div>
-                              <div className="text-xs text-gray-400">#{audit.id}</div>
+
+                        {/* 1. sütun: store modu → Store adı, filtreli mod → #id */}
+                        {isFiltered ? (
+                          <td className="px-6 py-4 text-xs text-gray-400">#{audit.id}</td>
+                        ) : (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+                                <ClipboardList size={16} />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900 dark:text-white">{audit.storeName}</div>
+                                <div className="text-xs text-gray-400">#{audit.id}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
+                          </td>
+                        )}
+
+                        {/* 2. sütun: Auditor / Task — her zaman var */}
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-700 dark:text-gray-300">{audit.auditorName}</div>
                           <span className="inline-block mt-0.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">
                             {TASK_TYPE_LABELS[audit.taskType] ?? audit.taskType}
                           </span>
                         </td>
+
+                        {/* 3. sütun: Compliance */}
                         <td className="px-6 py-4">
                           <div className="w-32">
                             <div className="flex justify-between items-center text-xs mb-1">
@@ -106,24 +185,43 @@ const AuditsPage = () => {
                             </div>
                           </div>
                         </td>
+
+                        {/* 4. sütun: Status */}
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[audit.status] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                             {STATUS_LABELS[audit.status] ?? audit.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{formatDate(audit.captureDate)}</td>
+
+                        {/* 5. sütun: Date */}
+                        <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {formatDate(audit.captureDate)}
+                        </td>
+
+                        {/* 6. sütun: Issues */}
                         <td className="px-6 py-4">
-                          {audit.issues.length === 0 ? <span className="text-xs text-gray-400">—</span> : (
+                          {audit.issues.length === 0 ? (
+                            <span className="text-xs text-gray-400">—</span>
+                          ) : (
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{audit.issues.length}</span>
                               {criticalCount > 0 && (
-                                <span className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 px-1.5 py-0.5 rounded-full">{criticalCount} critical</span>
+                                <span className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 px-1.5 py-0.5 rounded-full">
+                                  {criticalCount} critical
+                                </span>
                               )}
                             </div>
                           )}
                         </td>
+
+                        {/* 7. sütun: Action */}
                         <td className="px-6 py-4 text-right">
-                          <button onClick={() => navigate(`/audits/${audit.id}`)} className="text-blue-600 hover:text-blue-800 font-medium text-xs whitespace-nowrap">View Details →</button>
+                          <button
+                            onClick={() => navigate(`/audits/${audit.id}`)}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-xs whitespace-nowrap"
+                          >
+                            View Details →
+                          </button>
                         </td>
                       </tr>
                     );
@@ -131,18 +229,27 @@ const AuditsPage = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
             <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Page <span className="font-medium text-gray-900 dark:text-white">{currentPage}</span> of <span className="font-medium text-gray-900 dark:text-white">{totalPages}</span>
+                Page <span className="font-medium text-gray-900 dark:text-white">{currentPage}</span> of{' '}
+                <span className="font-medium text-gray-900 dark:text-white">{totalPages}</span>
                 <span className="text-gray-400 ml-2">({totalCount} total)</span>
               </span>
               <div className="flex items-center gap-2">
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1 || isLoading}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1 || isLoading}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
                   <ChevronLeft size={15} />Previous
                 </button>
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage >= totalPages || isLoading}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                <button
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={currentPage >= totalPages || isLoading}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
                   Next<ChevronRight size={15} />
                 </button>
               </div>
