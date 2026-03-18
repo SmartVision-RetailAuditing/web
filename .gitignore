@@ -29,6 +29,5 @@ dist-ssr
 .env
 .env.development
 .env.production
-.env.local
 # .env.example → commitleniyor (secret yok, sadece şablon)
 .env.production

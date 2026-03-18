@@ -1,0 +1,13 @@
+
+node_modules
+dist
+build
+.vscode
+.git
+.gitignore
+.env
+.env.development
+.env.example
+npm-debug.log
+yarn.lock
+.DS_Store
