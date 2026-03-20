@@ -5,6 +5,8 @@ export interface LoginRequestDto {
 
 export interface LoginResponseDto {
   token: string;
+  UserId: number;
+  Role: string;
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
