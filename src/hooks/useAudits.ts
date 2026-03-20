@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { auditService } from '../services/audits.service';
 import type { AuditDto, PagedResult } from '../services/audits.service';
 import { useDebounce } from './useDebounce';
-import signalRService from '../services/signalRService';
+import signalRService from '../services/signalRService.ts';
 
 const ITEMS_PER_PAGE = 10;
 
