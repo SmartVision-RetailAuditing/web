@@ -30,7 +30,8 @@ export interface AuditDto {
   storeName: string;
   auditorName: string;
   taskType: string;
-  imageUrl?: string;
+  preImageUrl: string;
+  postImageUrl:string
   captureDate: string;
   complianceScore: number;
   shelfSharePercentage: number;
