@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, Filter, ArrowLeft } from 'lucide-react';
+import { Search, ClipboardList, ChevronLeft, ChevronRight, AlertCircle, Filter, ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { useAudits } from '../../hooks/useAudits';
+import { auditService } from '../../services/audits.service';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All Statuses' },
@@ -33,6 +35,7 @@ const formatDate = (dateStr: string) =>
 const AuditsPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [isExporting, setIsExporting] = useState(false);
 
   const storeIdParam   = searchParams.get('storeId');
   const storeNameParam = searchParams.get('storeName');
@@ -44,6 +47,20 @@ const AuditsPage = () => {
     isLoading, error, searchTerm, setSearchTerm,
     statusFilter, setStatusFilter, refresh,
   } = useAudits(storeId);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await auditService.exportExcel({
+        storeId:  storeId,
+        status:   statusFilter || undefined,
+      });
+    } catch {
+      // toast.error('Excel export failed.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -81,7 +98,7 @@ const AuditsPage = () => {
         </div>
       </div>
 
-      {/* Filtreler */}
+      {/* Filtreler + Export */}
       <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -104,6 +121,15 @@ const AuditsPage = () => {
           </select>
           <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90" size={14} />
         </div>
+        {/* Excel Export — aktif filtreler yansır */}
+        <button
+          onClick={handleExportExcel}
+          disabled={isExporting || audits.length === 0}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+        >
+          <FileSpreadsheet size={16} />
+          {isExporting ? 'Exporting...' : 'Export Excel'}
+        </button>
       </div>
 
       {/* Hata */}
@@ -129,7 +155,6 @@ const AuditsPage = () => {
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wide border-b border-gray-100 dark:border-gray-800">
                   <tr>
-                    {/* Store filtreli değilse Store sütunu göster, filtreli ise Audit # */}
                     {isFiltered
                       ? <th className="px-6 py-4 w-16">#</th>
                       : <th className="px-6 py-4">Store</th>
@@ -148,8 +173,6 @@ const AuditsPage = () => {
                     const criticalCount = audit.issues.filter(i => i.severity === 'CRITICAL').length;
                     return (
                       <tr key={audit.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-
-                        {/* 1. sütun: store modu → Store adı, filtreli mod → #id */}
                         {isFiltered ? (
                           <td className="px-6 py-4 text-xs text-gray-400">#{audit.id}</td>
                         ) : (
@@ -165,16 +188,12 @@ const AuditsPage = () => {
                             </div>
                           </td>
                         )}
-
-                        {/* 2. sütun: Auditor / Task — her zaman var */}
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-700 dark:text-gray-300">{audit.auditorName}</div>
                           <span className="inline-block mt-0.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5">
                             {TASK_TYPE_LABELS[audit.taskType] ?? audit.taskType}
                           </span>
                         </td>
-
-                        {/* 3. sütun: Compliance */}
                         <td className="px-6 py-4">
                           <div className="w-32">
                             <div className="flex justify-between items-center text-xs mb-1">
@@ -185,20 +204,14 @@ const AuditsPage = () => {
                             </div>
                           </div>
                         </td>
-
-                        {/* 4. sütun: Status */}
                         <td className="px-6 py-4">
                           <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[audit.status] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}>
                             {STATUS_LABELS[audit.status] ?? audit.status}
                           </span>
                         </td>
-
-                        {/* 5. sütun: Date */}
                         <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                           {formatDate(audit.captureDate)}
                         </td>
-
-                        {/* 6. sütun: Issues */}
                         <td className="px-6 py-4">
                           {audit.issues.length === 0 ? (
                             <span className="text-xs text-gray-400">—</span>
@@ -213,8 +226,6 @@ const AuditsPage = () => {
                             </div>
                           )}
                         </td>
-
-                        {/* 7. sütun: Action */}
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => navigate(`/audits/${audit.id}`)}
