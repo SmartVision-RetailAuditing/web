@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Activity, Edit2, Trash2, ClipboardList, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Activity, Edit2, Trash2, ClipboardList, ChevronRight, Download } from 'lucide-react';
 import { storeService } from '../../services/stores.service';
 import type { StoreDto } from '../../services/stores.service';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,12 +12,13 @@ const StoreDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
-  const [store, setStore]                     = useState<StoreDto | null>(null);
-  const [isLoading, setIsLoading]             = useState(true);
-  const [error, setError]                     = useState('');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [store, setStore]                         = useState<StoreDto | null>(null);
+  const [isLoading, setIsLoading]                 = useState(true);
+  const [error, setError]                         = useState('');
+  const [isEditModalOpen, setIsEditModalOpen]     = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDeleting, setIsDeleting]           = useState(false);
+  const [isDeleting, setIsDeleting]               = useState(false);
+  const [isExporting, setIsExporting]             = useState(false);
 
   useEffect(() => { if (id) fetchStoreDetail(id); }, [id]);
 
@@ -25,8 +26,11 @@ const StoreDetailPage = () => {
     try {
       setIsLoading(true); setError('');
       setStore(await storeService.getStoreById(storeId));
-    } catch (err: any) { setError(err.message || 'Mağaza detayı yüklenemedi.'); }
-    finally { setIsLoading(false); }
+    } catch (err: any) {
+      setError(err.message || 'Store details could not be loaded.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -35,12 +39,31 @@ const StoreDetailPage = () => {
     try {
       await storeService.deleteStore(store.id);
       setIsDeleteModalOpen(false);
-      toast.success(`${store.name} başarıyla silindi!`);
+      toast.success(`${store.name} deleted successfully!`);
       navigate('/stores', { replace: true });
     } catch (err: any) {
-      toast.error(err.message || 'Silme işlemi başarısız oldu.');
+      toast.error(err.message || 'Deletion failed.');
       setIsDeleteModalOpen(false);
-    } finally { setIsDeleting(false); }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!store) return;
+    setIsExporting(true);
+    try {
+      await storeService.exportPdf(store.id);
+    } catch {
+      // toast.error('PDF export failed.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const goToStoreAudits = () => {
+    if (!store) return;
+    navigate(`/audits?storeId=${store.id}&storeName=${encodeURIComponent(store.name)}`);
   };
 
   const getComplianceColor = (score: number) =>
@@ -53,12 +76,6 @@ const StoreDetailPage = () => {
       case 'Non-Compliant': return 'bg-red-50 text-red-700 border-red-200';
       default:              return 'bg-gray-50 text-gray-600 border-gray-200';
     }
-  };
-
-  // Audit listesine git — storeId ve storeName query param olarak geçir
-  const goToStoreAudits = () => {
-    if (!store) return;
-    navigate(`/audits?storeId=${store.id}&storeName=${encodeURIComponent(store.name)}`);
   };
 
   if (isLoading) return <div className="p-12 text-center text-gray-400 text-sm">Loading store details...</div>;
@@ -83,7 +100,10 @@ const StoreDetailPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/stores')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+          <button
+            onClick={() => navigate('/stores')}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
             <ArrowLeft size={20} className="text-gray-600 dark:text-gray-400" />
           </button>
           <div>
@@ -95,16 +115,35 @@ const StoreDetailPage = () => {
             </p>
           </div>
         </div>
-        {isAdmin && (
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-              <Edit2 size={15} />Edit Store
-            </button>
-            <button onClick={() => setIsDeleteModalOpen(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm">
-              <Trash2 size={15} />Delete
-            </button>
-          </div>
-        )}
+
+        <div className="flex items-center gap-3">
+          {/* PDF Export */}
+          <button
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={15} />
+            {isExporting ? 'Exporting...' : 'Export PDF'}
+          </button>
+
+          {isAdmin && (
+            <>
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+              >
+                <Edit2 size={15} />Edit Store
+              </button>
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm"
+              >
+                <Trash2 size={15} />Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -113,20 +152,26 @@ const StoreDetailPage = () => {
         {/* Location */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg"><MapPin size={20} /></div>
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+              <MapPin size={20} />
+            </div>
             <h3 className="font-semibold text-gray-900 dark:text-white">Location</h3>
           </div>
           <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{store.address}</p>
           <p className="text-gray-400 text-xs">{store.latitude}, {store.longitude}</p>
           {store.region && (
-            <div className="mt-3 inline-block px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-md">{store.region}</div>
+            <div className="mt-3 inline-block px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-md">
+              {store.region}
+            </div>
           )}
         </div>
 
         {/* Compliance */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg"><Activity size={20} /></div>
+            <div className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
+              <Activity size={20} />
+            </div>
             <h3 className="font-semibold text-gray-900 dark:text-white">Compliance</h3>
           </div>
           <div className="flex items-end justify-between mb-3">
@@ -134,9 +179,14 @@ const StoreDetailPage = () => {
             <span className="text-3xl font-bold text-gray-900 dark:text-white">{store.complianceScore}%</span>
           </div>
           <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 mb-4">
-            <div className={`h-2 rounded-full transition-all ${getComplianceColor(store.complianceScore)}`} style={{ width: `${Math.min(store.complianceScore, 100)}%` }} />
+            <div
+              className={`h-2 rounded-full transition-all ${getComplianceColor(store.complianceScore)}`}
+              style={{ width: `${Math.min(store.complianceScore, 100)}%` }}
+            />
           </div>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(store.status)}`}>{store.status}</span>
+          <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadgeColor(store.status)}`}>
+            {store.status}
+          </span>
         </div>
 
         {/* Chain Info — tıklanabilir audit kartı */}
@@ -149,11 +199,15 @@ const StoreDetailPage = () => {
             group"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg"><Building2 size={20} /></div>
+            <div className="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+              <Building2 size={20} />
+            </div>
             <h3 className="font-semibold text-gray-900 dark:text-white">Chain Info</h3>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Part of the <span className="font-semibold text-gray-900 dark:text-white">{store.chainName}</span> retail chain.
+            Part of the{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{store.chainName}</span>{' '}
+            retail chain.
           </p>
           <div className="flex items-center justify-between pt-4 border-t border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3">
