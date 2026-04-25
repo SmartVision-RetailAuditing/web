@@ -7,9 +7,9 @@ export interface TaskDto {
   storeAddress: string;
   latitude: number;
   longitude: number;
-  taskType: string;   // "SHELF_AUDIT" | "PRICE_CHECK" | "PANORAMA" | "PLANOGRAM_COMPLIANCE"
-  priority: string;  // "LOW" | "MEDIUM" | "HIGH"
-  status: string;    // "PENDING" | "IN_PROGRESS" | "COMPLETED"
+  taskType: string;
+  priority: string;
+  status: string;
   dueDate: string;
   completedAt?: string;
   description?: string;
@@ -20,9 +20,9 @@ export interface TaskDto {
 
 export interface CreateTaskDto {
   storeId: number;
-  userId?: number;   // nullable — backend'de int? UserId, [Required] kaldırıldı
-  taskType: number;  // enum int value: 0=SHELF_AUDIT, 1=PRICE_CHECK, 2=PANORAMA, 3=PLANOGRAM_COMPLIANCE
-  priority: number;  // enum int value: 0=LOW, 1=MEDIUM, 2=HIGH
+  userId?: number;
+  taskType: number;
+  priority: number;
   dueDate: string;
   description?: string;
 }
@@ -34,7 +34,7 @@ export interface UpdateTaskDto {
   priority?: number;
   dueDate?: string;
   description?: string;
-  status?: number;   // 0=PENDING, 1=IN_PROGRESS, 2=COMPLETED
+  status?: number;
 }
 
 export interface TaskStatsDto {
@@ -42,7 +42,7 @@ export interface TaskStatsDto {
   pending: number;
   inProgress: number;
   completedThisWeek: number;
-  unassigned: number;  // UserId == null
+  unassigned: number;
 }
 
 export interface PagedResult<T> {
@@ -94,10 +94,10 @@ export const getPriorityColor = (priority: string) => {
 
 export const getStatusColor = (status: string) => {
   switch (status) {
-    case 'COMPLETED':  return 'bg-green-50 text-green-700 border-green-200';
+    case 'COMPLETED':   return 'bg-green-50 text-green-700 border-green-200';
     case 'IN_PROGRESS': return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'PENDING':    return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-    default:           return 'bg-gray-50 text-gray-600 border-gray-200';
+    case 'PENDING':     return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+    default:            return 'bg-gray-50 text-gray-600 border-gray-200';
   }
 };
 
@@ -110,27 +110,36 @@ export const getStatusLabel = (status: string) => {
   }
 };
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+// ─── Service ─────────────────────────────────────────────────────────────────
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-const API_URL = `${BASE_URL}/Tasks`;
+const API_URL  = `${BASE_URL}/Tasks`;
 
 const authHeaders = (): HeadersInit => ({
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}`,
 });
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a   = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 export const taskService = {
-  // GET /api/tasks/stats
+  // GET /api/Tasks/stats
   getTaskStats: async (): Promise<TaskStatsDto> => {
-    const response = await fetch(`${API_URL}/stats`, {
-      headers: authHeaders(),
-    });
+    const response = await fetch(`${API_URL}/stats`, { headers: authHeaders() });
     if (!response.ok) throw new Error('Failed to load task statistics.');
     return response.json();
   },
 
-  // GET /api/tasks?page=1&size=10&search=...&status=PENDING&priority=HIGH&taskType=SHELF_AUDIT&userId=5
+  // GET /api/Tasks?page=1&size=10&search=...&status=PENDING&priority=HIGH&taskType=SHELF_AUDIT&userId=5
   getAllTasks: async (
     page = 1,
     size = 10,
@@ -138,61 +147,82 @@ export const taskService = {
     status?: string,
     priority?: string,
     taskType?: string,
-    userId?: number,    // UserDetailPage için
+    userId?: number,
   ): Promise<PagedResult<TaskDto>> => {
-    const params = new URLSearchParams({
-      page: String(page),
-      size: String(size),
-    });
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
     if (search?.trim())   params.append('search',   search.trim());
     if (status?.trim())   params.append('status',   status.trim());
     if (priority?.trim()) params.append('priority', priority.trim());
     if (taskType?.trim()) params.append('taskType', taskType.trim());
     if (userId)           params.append('userId',   String(userId));
-
-    const response = await fetch(`${API_URL}?${params}`, {
-      headers: authHeaders(),
-    });
+    const response = await fetch(`${API_URL}?${params}`, { headers: authHeaders() });
     if (!response.ok) throw new Error('Failed to load task list.');
     return response.json();
   },
 
-  // GET /api/tasks/:id
+  // GET /api/Tasks/:id
   getTaskById: async (id: string | number): Promise<TaskDto> => {
-    const response = await fetch(`${API_URL}/${id}`, {
-      headers: authHeaders(),
-    });
+    const response = await fetch(`${API_URL}/${id}`, { headers: authHeaders() });
     if (!response.ok) throw new Error('Task details not found.');
     return response.json();
   },
 
-  // POST /api/tasks
+  // POST /api/Tasks
   createTask: async (data: CreateTaskDto): Promise<TaskDto> => {
     const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify(data),
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Task creation failed.');
     return response.json();
   },
 
-  // PUT /api/tasks/:id  — hem full edit hem assign-only için kullanılır
+  // PUT /api/Tasks/:id
   updateTask: async (id: number, data: UpdateTaskDto): Promise<void> => {
     const response = await fetch(`${API_URL}/${id}`, {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify(data),
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(data),
     });
     if (!response.ok) throw new Error('Task update failed.');
   },
 
-  // DELETE /api/tasks/:id
+  // DELETE /api/Tasks/:id
   deleteTask: async (id: number): Promise<void> => {
     const response = await fetch(`${API_URL}/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}` },
     });
     if (!response.ok) throw new Error('Task deletion failed.');
+  },
+
+  // GET /api/Tasks/{id}/export/pdf
+  exportPdf: async (id: number): Promise<void> => {
+    const response = await fetch(`${API_URL}/${id}/export/pdf`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}` },
+    });
+    if (!response.ok) throw new Error('PDF export failed.');
+    const blob = await response.blob();
+    downloadBlob(blob, `task-${id}-report.pdf`);
+  },
+
+  // GET /api/Tasks/export/excel?search=...&status=...&priority=...&taskType=...&userId=...
+  exportExcel: async (filters: {
+    search?:   string;
+    status?:   string;
+    priority?: string;
+    taskType?: string;
+    userId?:   number;
+  } = {}): Promise<void> => {
+    const params = new URLSearchParams();
+    if (filters.search)            params.append('search',   filters.search);
+    if (filters.status)            params.append('status',   filters.status);
+    if (filters.priority)          params.append('priority', filters.priority);
+    if (filters.taskType)          params.append('taskType', filters.taskType);
+    if (filters.userId !== undefined) params.append('userId', String(filters.userId));
+    const response = await fetch(`${API_URL}/export/excel?${params}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('smartvision_token')}` },
+    });
+    if (!response.ok) throw new Error('Excel export failed.');
+    const blob = await response.blob();
+    const date = new Date().toISOString().slice(0, 10);
+    downloadBlob(blob, `smartvision-tasks-${date}.xlsx`);
   },
 };

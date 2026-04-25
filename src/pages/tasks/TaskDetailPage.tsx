@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit2, Trash2, MapPin, User,
   ClipboardList, Calendar, CheckCircle2, ExternalLink,
-  AlertCircle, Clock, Activity
+  AlertCircle, Clock, Activity, Download
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -45,12 +45,13 @@ const TaskDetailPage = () => {
   const { isAdmin, isSupervisor } = useAuth();
   const canManage = isAdmin || isSupervisor;
 
-  const [task, setTask] = useState<TaskDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isEditModalOpen, setEditModal] = useState(false);
-  const [isDeleteModalOpen, setDeleteModal] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [task, setTask]                       = useState<TaskDto | null>(null);
+  const [isLoading, setIsLoading]             = useState(true);
+  const [error, setError]                     = useState('');
+  const [isEditModalOpen, setEditModal]       = useState(false);
+  const [isDeleteModalOpen, setDeleteModal]   = useState(false);
+  const [isDeleting, setIsDeleting]           = useState(false);
+  const [isExporting, setIsExporting]         = useState(false);
 
   useEffect(() => { if (id) fetchTask(id); }, [id]);
 
@@ -58,8 +59,11 @@ const TaskDetailPage = () => {
     try {
       setIsLoading(true); setError('');
       setTask(await taskService.getTaskById(taskId));
-    } catch (err: any) { setError(err.message || 'Task detayı yüklenemedi.'); }
-    finally { setIsLoading(false); }
+    } catch (err: any) {
+      setError(err.message || 'Task details could not be loaded.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -68,12 +72,26 @@ const TaskDetailPage = () => {
     try {
       await taskService.deleteTask(task.id);
       setDeleteModal(false);
-      toast.success('Task başarıyla silindi!');
+      toast.success('Task deleted successfully!');
       navigate('/tasks', { replace: true });
     } catch (err: any) {
-      toast.error(err.message || 'Silme işlemi başarısız oldu.');
+      toast.error(err.message || 'Deletion failed.');
       setDeleteModal(false);
-    } finally { setIsDeleting(false); }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!task) return;
+    setIsExporting(true);
+    try {
+      await taskService.exportPdf(task.id);
+    } catch {
+      // toast.error('PDF export failed.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (isLoading) return <div className="p-12 text-center text-gray-400 text-sm">Loading task details...</div>;
@@ -86,15 +104,29 @@ const TaskDetailPage = () => {
 
       {canManage && (
         <>
-          <EditTaskModal isOpen={isEditModalOpen} onClose={() => setEditModal(false)} task={task} onSuccess={() => fetchTask(id as string)} />
-          <DeleteConfirmModal isOpen={isDeleteModalOpen} onClose={() => setDeleteModal(false)} onConfirm={confirmDelete} itemName={`Task #${task.id} — ${task.storeName}`} isLoading={isDeleting} />
+          <EditTaskModal
+            isOpen={isEditModalOpen}
+            onClose={() => setEditModal(false)}
+            task={task}
+            onSuccess={() => fetchTask(id as string)}
+          />
+          <DeleteConfirmModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => setDeleteModal(false)}
+            onConfirm={confirmDelete}
+            itemName={`Task #${task.id} — ${task.storeName}`}
+            isLoading={isDeleting}
+          />
         </>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/tasks')} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+          <button
+            onClick={() => navigate('/tasks')}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
             <ArrowLeft size={20} className="text-gray-600 dark:text-gray-400" />
           </button>
           <div>
@@ -108,25 +140,45 @@ const TaskDetailPage = () => {
             </p>
           </div>
         </div>
-        {canManage && (
-          <div className="flex items-center gap-3">
-            <button onClick={() => setEditModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-              <Edit2 size={15} />Edit Task
-            </button>
-            <button onClick={() => setDeleteModal(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm">
-              <Trash2 size={15} />Delete
-            </button>
-          </div>
-        )}
+
+        <div className="flex items-center gap-3">
+          {/* PDF Export */}
+          <button
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={15} />
+            {isExporting ? 'Exporting...' : 'Export PDF'}
+          </button>
+
+          {canManage && (
+            <>
+              <button
+                onClick={() => setEditModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+              >
+                <Edit2 size={15} />Edit Task
+              </button>
+              <button
+                onClick={() => setDeleteModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors shadow-sm"
+              >
+                <Trash2 size={15} />Delete
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Overdue banner */}
       {isOverdue && (
         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-400 text-sm">
           <AlertCircle size={18} className="shrink-0" />
-          <span>This task is <strong>overdue</strong>. Due date was {new Date(task.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.</span>
+          <span>
+            This task is <strong>overdue</strong>. Due date was{' '}
+            {new Date(task.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}.
+          </span>
         </div>
       )}
 
@@ -138,11 +190,15 @@ const TaskDetailPage = () => {
           {/* Hero Card */}
           <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg"><ClipboardList size={20} /></div>
+              <div className="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                <ClipboardList size={20} />
+              </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Task Details</h3>
             </div>
             <InfoRow icon={<Activity size={15} />} label="Status" value={
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>{getStatusLabel(task.status)}</span>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(task.status)}`}>
+                {getStatusLabel(task.status)}
+              </span>
             } />
             <InfoRow icon={<AlertCircle size={15} />} label="Priority" value={
               <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${getPriorityColor(task.priority)}`}>
@@ -174,7 +230,9 @@ const TaskDetailPage = () => {
           {/* Assignee Card */}
           <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg"><User size={20} /></div>
+              <div className="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                <User size={20} />
+              </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Assignee</h3>
             </div>
             {task.assigneeId && task.assigneeName ? (
@@ -195,19 +253,25 @@ const TaskDetailPage = () => {
           {/* Linked Audit Card */}
           <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg"><CheckCircle2 size={20} /></div>
+              <div className="p-2 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
+                <CheckCircle2 size={20} />
+              </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Linked Audit</h3>
             </div>
             {task.auditId ? (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600 dark:text-gray-400">This task has a completed audit record.</p>
-                <button onClick={() => navigate(`/audits/${task.auditId}`)}
-                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors shadow-sm">
+                <button
+                  onClick={() => navigate(`/audits/${task.auditId}`)}
+                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors shadow-sm"
+                >
                   View Audit #{task.auditId}<ExternalLink size={14} />
                 </button>
               </div>
             ) : (
-              <p className="text-sm text-gray-400 italic">No audit linked yet. Audit will be created when the task is completed.</p>
+              <p className="text-sm text-gray-400 italic">
+                No audit linked yet. Audit will be created when the task is completed.
+              </p>
             )}
           </div>
         </div>
@@ -218,7 +282,9 @@ const TaskDetailPage = () => {
           {/* Store Info */}
           <div className="bg-white dark:bg-gray-900 p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-500 dark:text-orange-400 rounded-lg"><MapPin size={20} /></div>
+              <div className="p-2 bg-orange-50 dark:bg-orange-900/30 text-orange-500 dark:text-orange-400 rounded-lg">
+                <MapPin size={20} />
+              </div>
               <h3 className="font-semibold text-gray-900 dark:text-white">Store Location</h3>
             </div>
             <div className="flex items-start justify-between gap-4">
@@ -227,8 +293,10 @@ const TaskDetailPage = () => {
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{task.storeAddress}</p>
                 <p className="text-xs text-gray-400 mt-1">{task.latitude}, {task.longitude}</p>
               </div>
-              <button onClick={() => navigate(`/stores/${task.storeId}`)}
-                className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
+              <button
+                onClick={() => navigate(`/stores/${task.storeId}`)}
+                className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0"
+              >
                 View Store <ExternalLink size={12} />
               </button>
             </div>
@@ -239,20 +307,36 @@ const TaskDetailPage = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900 dark:text-white">Map</h3>
               <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                <div className={`w-2.5 h-2.5 rounded-full ${task.priority === 'HIGH' ? 'bg-red-500' : task.priority === 'MEDIUM' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  task.priority === 'HIGH' ? 'bg-red-500' :
+                  task.priority === 'MEDIUM' ? 'bg-yellow-500' : 'bg-green-500'
+                }`} />
                 <span>{task.priority.charAt(0) + task.priority.slice(1).toLowerCase()} Priority</span>
               </div>
             </div>
             <div className="rounded-xl overflow-hidden" style={{ height: '380px' }}>
-              <MapContainer center={[task.latitude, task.longitude]} zoom={14} scrollWheelZoom={true} style={{ height: '100%', width: '100%', zIndex: 0 }}>
-                <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-                <Marker position={[task.latitude, task.longitude]} icon={createPriorityIcon(task.priority)}>
+              <MapContainer
+                center={[task.latitude, task.longitude]}
+                zoom={14}
+                scrollWheelZoom={true}
+                style={{ height: '100%', width: '100%', zIndex: 0 }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                />
+                <Marker
+                  position={[task.latitude, task.longitude]}
+                  icon={createPriorityIcon(task.priority)}
+                >
                   <Popup className="custom-popup">
                     <div className="min-w-[180px]">
                       <h3 className="text-sm font-bold text-gray-900 mb-1">{task.storeName}</h3>
                       <p className="text-xs text-gray-500 mb-3 truncate">{task.storeAddress}</p>
-                      <button onClick={() => navigate(`/stores/${task.storeId}`)}
-                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 rounded-lg transition-colors">
+                      <button
+                        onClick={() => navigate(`/stores/${task.storeId}`)}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-2 rounded-lg transition-colors"
+                      >
                         View Store <ExternalLink size={12} />
                       </button>
                     </div>
