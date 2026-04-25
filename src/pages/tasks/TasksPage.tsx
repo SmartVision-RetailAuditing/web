@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, Plus, UserPlus,
   ClipboardList, Clock, Activity, CheckCircle2,
   ChevronLeft, ChevronRight, AlertCircle,
-  Filter, User
+  Filter, User, FileSpreadsheet
 } from 'lucide-react';
 import { useTasks } from '../../hooks/useTasks';
 import { useAuth } from '../../hooks/useAuth';
 import {
   TASK_TYPE_LABELS, TASK_TYPE_OPTIONS, PRIORITY_OPTIONS,
   getPriorityColor, getStatusColor, getStatusLabel,
+  taskService,
 } from '../../services/tasks.service';
 import AddTaskModal from '../../components/tasks/AddTaskModal';
 import AssignTaskModal from '../../components/tasks/AssignTaskModal';
@@ -62,8 +63,25 @@ const TasksPage = () => {
     taskTypeFilter, setTaskTypeFilter, stats, statsLoading, refresh,
   } = useTasks();
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [assignTask, setAssignTask] = useState<{ id: number; storeName: string } | null | undefined>(undefined);
+  const [isAddModalOpen, setIsAddModalOpen]   = useState(false);
+  const [assignTask, setAssignTask]           = useState<{ id: number; storeName: string } | null | undefined>(undefined);
+  const [isExporting, setIsExporting]         = useState(false);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await taskService.exportExcel({
+        search:   searchTerm   || undefined,
+        status:   statusFilter || undefined,
+        priority: priorityFilter || undefined,
+        taskType: taskTypeFilter || undefined,
+      });
+    } catch {
+      // toast.error('Excel export failed.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -109,16 +127,19 @@ const TasksPage = () => {
         <KpiCard icon={<Clock size={20} className="text-yellow-600" />} label="Pending" sub="Need assignment" value={stats?.pending ?? 0} color="bg-yellow-50" darkColor="dark:bg-yellow-900/30" loading={statsLoading} />
         <KpiCard icon={<Activity size={20} className="text-purple-600" />} label="In Progress" sub="Currently active" value={stats?.inProgress ?? 0} color="bg-purple-50" darkColor="dark:bg-purple-900/30" loading={statsLoading} />
         <KpiCard icon={<CheckCircle2 size={20} className="text-green-600" />} label="Completed This Week" sub="Successfully done" value={stats?.completedThisWeek ?? 0} color="bg-green-50" darkColor="dark:bg-green-900/30" loading={statsLoading} />
-        <KpiCard icon={<User size={20} className="text-orange-600" />} label="Unassigned" sub="Need assignment" value={stats?.unassigned ?? 0} color="bg-orange-50" darkColor="dark:bg-orange-900/30" loading={statsLoading} onClick={() => setStatusFilter("UNASSIGNED")} />
+        <KpiCard icon={<User size={20} className="text-orange-600" />} label="Unassigned" sub="Need assignment" value={stats?.unassigned ?? 0} color="bg-orange-50" darkColor="dark:bg-orange-900/30" loading={statsLoading} onClick={() => setStatusFilter('UNASSIGNED')} />
       </div>
 
-      {/* Search + Filters */}
+      {/* Search + Filters + Export */}
       <div className="bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Search tasks, stores or assignee..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" />
+            <input
+              type="text" placeholder="Search tasks, stores or assignee..."
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
           </div>
           <div className="relative">
             <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -136,6 +157,15 @@ const TasksPage = () => {
               {TASK_TYPE_OPTIONS.map(o => <option key={o.value} value={Object.keys(TASK_TYPE_LABELS)[o.value]}>{o.label}</option>)}
             </select>
           </div>
+          {/* Excel Export — aktif filtreler yansır */}
+          <button
+            onClick={handleExportExcel}
+            disabled={isExporting || tasks.length === 0}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            <FileSpreadsheet size={16} />
+            {isExporting ? 'Exporting...' : 'Export Excel'}
+          </button>
         </div>
         <div className="flex items-center gap-1 flex-wrap">
           {STATUS_TABS.map(tab => (
@@ -234,7 +264,8 @@ const TasksPage = () => {
             </div>
             <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between bg-gray-50/50 dark:bg-gray-800/30">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                Page <span className="font-medium text-gray-900 dark:text-white">{currentPage}</span> of <span className="font-medium text-gray-900 dark:text-white">{totalPages}</span>
+                Page <span className="font-medium text-gray-900 dark:text-white">{currentPage}</span> of{' '}
+                <span className="font-medium text-gray-900 dark:text-white">{totalPages}</span>
                 <span className="text-gray-400 ml-2">({totalCount} total)</span>
               </span>
               <div className="flex items-center gap-2">
